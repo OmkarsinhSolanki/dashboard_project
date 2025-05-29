@@ -4,6 +4,9 @@ project/
 |______ stocks_filter.py        # Stocks filtering area
 |______ value_editor.py         # Value editing area
 |
+|__ A .streamlit/                    # Utility functions
+│   └── secrets.toml
+|
 |__ A token/                    # Utility functions
 │   └── access_token.py
 │   └── fetch_tokens.py
@@ -72,6 +75,9 @@ import streamlit as st
 from stocks_filter import main as box6_main
 from value_editor import main as value_editor_main
 
+
+# streamlit run main_app.py
+
 # Configure page
 st.set_page_config(
     page_title="Stock Analysis Dashboard", 
@@ -90,7 +96,7 @@ hide_st_style = """
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
 # Sidebar navigation
-st.sidebar.title("Stock Analysis")
+st.sidebar.title("Stocks Analysis")
 st.sidebar.markdown("---")
 app_mode = st.sidebar.radio(
     "Navigation",
@@ -132,6 +138,8 @@ from components.supply_zones import render_zone_tab as render_supply_zone_tab
 from components.confirmation import render_confirmation_list
 from components.top_picks import render_top_picks
 from components.chart import render_chart
+
+# streamlit run stocks_filter.py
 
 def main():
     # Initialize session state variables FIRST
@@ -282,6 +290,9 @@ import json
 from datetime import datetime
 from pathlib import Path
 from fuzzywuzzy import process
+
+
+# streamlit run value_editor.py
 
 def load_zone_data():
     path = Path(__file__).parent / "data" / "zone_definitions.json"
@@ -686,19 +697,44 @@ if __name__ == "__main__":
 #===================================================================================================================
 #=================================================
 #=================================================
+# .streamlit/secrets.toml  
+#=================================================
+#=================================================
+#===================================================================================================================
+
+[kite]
+api_key = "my actual API key"
+api_secret = "my actual API secret"
+access_token = "my actual API access token"
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+#=================================================
+#=================================================
 # A token/access_token.py  
 #=================================================
 #=================================================
 #===================================================================================================================
 
 from kiteconnect import KiteConnect
+from dotenv import load_dotenv
+import os
 
-# do every time
-# https://kite.trade/connect/login?api_key=YOUR_API_KEY&v=3
-# use the link ginen above to get new 'request token" and ureplace it with your_request_token down here.
+load_dotenv()
+API_KEY = os.getenv("API_KEY")
+API_SECRET = os.getenv("API_SECRET")
+ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
 
-kite = KiteConnect(api_key="YOUR_API_KEY")
-data = kite.generate_session("your_request_token", api_secret="YOUR_API_SECRET")
+
+kite = KiteConnect(api_key=API_KEY)
+data = kite.generate_session("Ozg0DmhRCY1AAEqcaaSaY1KpUFu4YSb5", api_secret=API_SECRET)
 access_token = data["access_token"]
 
 print("Access Token:", access_token)
@@ -714,26 +750,31 @@ print("Access Token:", access_token)
 
 
 
+
 #===================================================================================================================
-# A token/access_token.py  
+# A token/fetch_tokens.py  
 #===================================================================================================================
 
 import os
 import pandas as pd
 from kiteconnect import KiteConnect
+from dotenv import load_dotenv
+import os
 import logging
 
 logging.basicConfig(level=logging.INFO)
 
 # ---- CONFIG ---- #
-KITE_API_KEY = "my_api_key"
-KITE_API_SECRET = "my_api_secret"
-KITE_ACCESS_TOKEN = "my_access_token"  # You should already have this
+
+load_dotenv()
+API_KEY = os.getenv("API_KEY")
+API_SECRET = os.getenv("API_SECRET")
+ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
 
 INSTRUMENTS_CSV = "nse_instruments.csv"
 
-kite = KiteConnect(api_key=KITE_API_KEY)
-kite.set_access_token(KITE_ACCESS_TOKEN)
+kite = KiteConnect(api_key=API_KEY)
+kite.set_access_token(ACCESS_TOKEN)
 
 # ---- 1. Download instrument list if not present ---- #
 def download_nse_instruments():
@@ -810,127 +851,6 @@ API_KEY = "my_api_key"
 API_SECRET = "my_api_secret"
 ACCESS_TOKEN = "my_access_token"
 USE_LIVE_DATA = True  
-
-
-
-
-
-
-
-
-
-#===================================================================================================================
-#=================================================
-#=================================================
-# utils/helper.py  
-#=================================================
-#=================================================
-#===================================================================================================================
-
-import streamlit as st
-
-def format_zone_display(zone_types, directions):
-    display_parts = []
-    for z, d in zip(zone_types, directions):
-        if z not in ["D1", "D2", "W", "M"]:
-            continue
-        color = "green" if d == "demand" else "red"
-        display_parts.append(f"<span style='color:{color}'>{z}</span>")
-    return " + ".join(display_parts) if display_parts else "<span style='color:gray'>N</span>"
-
-def get_daily_scores(zone_types, directions, strength, base):
-    for z, d in zip(zone_types, directions):
-        if z in ["D1", "D2"]:
-            return strength, base, strength + base
-    return "-", "-", "-"
-
-def update_rr_check(stock, checkbox_key, list_name):
-    new_state = st.session_state[checkbox_key]
-    for idx, item in enumerate(st.session_state.confirmation_list[list_name]):
-        if item["stock"] == stock:
-            st.session_state.confirmation_list[list_name][idx]["rr_check"] = new_state
-            break
-
-def update_in_trade_check(stock, checkbox_key, list_name):
-    new_state = st.session_state[checkbox_key]
-    for idx, item in enumerate(st.session_state.top_picks[list_name]):
-        if item["stock"] == stock:
-            st.session_state.top_picks[list_name][idx]["in_trade"] = new_state
-            break
-
-def add_to_confirmation_list(stock, sub_tab_key):
-    lst = st.session_state.confirmation_list[sub_tab_key]
-    if stock not in [item["stock"] for item in lst]:
-        lst.append({"stock": stock, "rr_check": False})
-        st.success(f"Added {stock} to Confirmation List {sub_tab_key.upper()}")
-
-
-
-
-
-
-
-
-
-#===================================================================================================================
-# utils/decorators.py  
-#===================================================================================================================
-
-import streamlit as st
-
-def handle_data_errors(func):
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except Exception as e:
-            st.error(f"Data error: {str(e)}")
-            # Optionally return mock data or empty result
-            return {}
-    return wrapper
-
-
-
-
-
-
-
-
-
-#===================================================================================================================
-# utils/zone_management.py  
-#===================================================================================================================
-
-import json
-from pathlib import Path
-
-def load_zone_data():
-    path = Path(__file__).parent.parent / "data" / "zone_definitions.json"
-    if not path.exists():
-        return {"sectors": {}, "stocks": {}}
-    with open(path) as f:
-        return json.load(f)
-
-def get_zones_for_symbol(symbol, is_sector=False):
-    zones_data = load_zone_data()
-    key = 'sectors' if is_sector else 'stocks'
-    return zones_data.get(key, {}).get(symbol, [])
-
-def get_active_zones(symbol, current_price, is_sector=False):
-    zones = get_zones_for_symbol(symbol, is_sector)
-    active_zones = [
-        zone for zone in zones
-        if zone['price_low'] <= current_price <= zone['price_high']
-    ]
-    return active_zones
-
-def get_zones_with_scores(symbol, is_sector=False):
-    zones_data = load_zone_data()
-    key = 'sectors' if is_sector else 'stocks'
-    zones = zones_data.get(key, {}).get(symbol, [])
-    return [
-        {**zone, 'total_score': zone['strength'] + zone['base']}
-        for zone in zones
-    ]
 
 
 
@@ -1886,22 +1806,32 @@ def render_chart():
 #===================================================================================================================
 
 
-import streamlit as st
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
+import streamlit as st
 
-# Try reading from Streamlit secrets first
-if st.secrets:
+try:
+    # Try reading from Streamlit secrets first
     API_KEY = st.secrets["kite"]["api_key"]
     API_SECRET = st.secrets["kite"]["api_secret"]
     ACCESS_TOKEN = st.secrets["kite"]["access_token"]
-else:
+except:
     # Fallback to local .env file
     load_dotenv()
     API_KEY = os.getenv("API_KEY")
     API_SECRET = os.getenv("API_SECRET")
     ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
     
+    # If still not found, use empty strings (app will show error)
+    if not API_KEY:
+        API_KEY = ""
+    if not API_SECRET:
+        API_SECRET = ""
+    if not ACCESS_TOKEN:
+        ACCESS_TOKEN = ""
+
+USE_LIVE_DATA = True
+
 
 
 
@@ -2129,6 +2059,46 @@ STOCK_NAME_MAP = {
         "strength": 7,
         "base": 3,
         "timestamp": "2025-05-23T18:39:33.864036"
+      }
+    ],
+        "BLUESTARCO": [
+      {
+        "price_low": 1500,
+        "price_high": 1600,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 7,
+        "base": 7,
+        "timestamp": "2025-05-22T15:28:35.733999"
+      },
+      {
+        "price_low": 1450,
+        "price_high": 1640,
+        "direction": "demand",
+        "type": "W",
+        "strength": 6,
+        "base": 3,
+        "timestamp": "2025-05-22T16:55:02.091655"
+      }
+    ],
+    "TITAN": [
+      {
+        "price_low": 3500,
+        "price_high": 3600,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 7,
+        "base": 3,
+        "timestamp": "2025-05-22T17:12:32.693246"
+      },
+      {
+        "price_low": 3545,
+        "price_high": 3570,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 5,
+        "base": 7,
+        "timestamp": "2025-05-23T01:47:57.758486"
       }
     ],
     "TATAMOTORS": [
@@ -2916,3 +2886,124 @@ class LiveMarketDataService:
             all_symbols.extend(sector_stocks)
         
         return self.provider.get_bulk_data(all_symbols)
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+#=================================================
+#=================================================
+# utils/helper.py  
+#=================================================
+#=================================================
+#===================================================================================================================
+
+import streamlit as st
+
+def format_zone_display(zone_types, directions):
+    display_parts = []
+    for z, d in zip(zone_types, directions):
+        if z not in ["D1", "D2", "W", "M"]:
+            continue
+        color = "green" if d == "demand" else "red"
+        display_parts.append(f"<span style='color:{color}'>{z}</span>")
+    return " + ".join(display_parts) if display_parts else "<span style='color:gray'>N</span>"
+
+def get_daily_scores(zone_types, directions, strength, base):
+    for z, d in zip(zone_types, directions):
+        if z in ["D1", "D2"]:
+            return strength, base, strength + base
+    return "-", "-", "-"
+
+def update_rr_check(stock, checkbox_key, list_name):
+    new_state = st.session_state[checkbox_key]
+    for idx, item in enumerate(st.session_state.confirmation_list[list_name]):
+        if item["stock"] == stock:
+            st.session_state.confirmation_list[list_name][idx]["rr_check"] = new_state
+            break
+
+def update_in_trade_check(stock, checkbox_key, list_name):
+    new_state = st.session_state[checkbox_key]
+    for idx, item in enumerate(st.session_state.top_picks[list_name]):
+        if item["stock"] == stock:
+            st.session_state.top_picks[list_name][idx]["in_trade"] = new_state
+            break
+
+def add_to_confirmation_list(stock, sub_tab_key):
+    lst = st.session_state.confirmation_list[sub_tab_key]
+    if stock not in [item["stock"] for item in lst]:
+        lst.append({"stock": stock, "rr_check": False})
+        st.success(f"Added {stock} to Confirmation List {sub_tab_key.upper()}")
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+# utils/decorators.py  
+#===================================================================================================================
+
+import streamlit as st
+
+def handle_data_errors(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            st.error(f"Data error: {str(e)}")
+            # Optionally return mock data or empty result
+            return {}
+    return wrapper
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+# utils/zone_management.py  
+#===================================================================================================================
+
+import json
+from pathlib import Path
+
+def load_zone_data():
+    path = Path(__file__).parent.parent / "data" / "zone_definitions.json"
+    if not path.exists():
+        return {"sectors": {}, "stocks": {}}
+    with open(path) as f:
+        return json.load(f)
+
+def get_zones_for_symbol(symbol, is_sector=False):
+    zones_data = load_zone_data()
+    key = 'sectors' if is_sector else 'stocks'
+    return zones_data.get(key, {}).get(symbol, [])
+
+def get_active_zones(symbol, current_price, is_sector=False):
+    zones = get_zones_for_symbol(symbol, is_sector)
+    active_zones = [
+        zone for zone in zones
+        if zone['price_low'] <= current_price <= zone['price_high']
+    ]
+    return active_zones
+
+def get_zones_with_scores(symbol, is_sector=False):
+    zones_data = load_zone_data()
+    key = 'sectors' if is_sector else 'stocks'
+    zones = zones_data.get(key, {}).get(symbol, [])
+    return [
+        {**zone, 'total_score': zone['strength'] + zone['base']}
+        for zone in zones
+    ]
