@@ -29,12 +29,13 @@ except:
 # Validate credentials
 if not all([API_KEY, API_SECRET, ACCESS_TOKEN]):
     st.error("⚠️ Missing Kite API credentials. Check secrets.toml or .env")
-    st.stop() 
+     
 
 # After the credential-loading code in main_app.py
 st.sidebar.write("Debug: Using secrets.toml?", "kite" in st.secrets)
 st.sidebar.write("Debug: API_KEY loaded?", bool(API_KEY))
 
+st.stop()
 from stocks_filter import main as box6_main
 from value_editor import main as value_editor_main
 
