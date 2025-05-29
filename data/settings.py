@@ -2,28 +2,26 @@ import os
 from dotenv import load_dotenv
 import streamlit as st
 
-# def get_credential(key):
-#     """Try multiple sources for credentials with clear error messaging"""
-#     try:
-#         # 1. First try Streamlit secrets
-#         if st.secrets.has_key("kite"):
-#             return st.secrets["kite"][key]
-#     except:
-#         pass
-    
-#     try:
-#         # 2. Try environment variables (for local development)
-#         load_dotenv()
-#         return os.getenv(key.upper())
-#     except:
-#         pass
-    
-#     # 3. Final fallback - return empty string
-#     return ""
 
-API_KEY = st.secrets["kite"]["api_key"]
-API_SECRET = st.secrets["kite"]["api_secret"]
-ACCESS_TOKEN = st.secrets["kite"]["access_token"]
+try:
+    # Try reading from Streamlit secrets first
+    API_KEY = st.secrets["kite"]["api_key"]
+    API_SECRET = st.secrets["kite"]["api_secret"]
+    ACCESS_TOKEN = st.secrets["kite"]["access_token"]
+except:
+    # Fallback to local .env file
+    load_dotenv()
+    API_KEY = os.getenv("API_KEY")
+    API_SECRET = os.getenv("API_SECRET")
+    ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
+    
+    # If still not found, use empty strings (app will show error)
+    if not API_KEY:
+        API_KEY = ""
+    if not API_SECRET:
+        API_SECRET = ""
+    if not ACCESS_TOKEN:
+        ACCESS_TOKEN = ""
 
 # Add validation
 if not all([API_KEY, API_SECRET, ACCESS_TOKEN]):
