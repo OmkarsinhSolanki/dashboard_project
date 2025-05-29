@@ -26,6 +26,6 @@ except:
 # Add validation
 if not all([API_KEY, API_SECRET, ACCESS_TOKEN]):
     st.error("⚠️ Missing Kite API credentials. Please check your configuration.")
-    st.stop() if st.running() else None
+    # st.stop() if st.running() else None
 
 USE_LIVE_DATA = True
