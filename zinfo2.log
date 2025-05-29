@@ -13,13 +13,7 @@ project/
 |
 |__ venv/                       # all the libraies 
 │   └── .env                    # has my_api_key, my_api_secret, my_access_token
-|
-|__ utils/                      # Utility functions
-│   └── __init__.py
-│   └── helpers.py              # Shared helper functions
-│   └── decorators.py
-│   └── zone_management.py
-|
+||
 |__ components/                 # UI components
 │   └── __init__.py
 │   └── manual_list.py          # Box 6A
@@ -47,6 +41,12 @@ project/
 │   └── data_provider.py 
 │   └── live_data_provider.py
 │   └── live_market_data_services.py
+|
+|__ utils/                      # Utility functions
+│   └── __init__.py
+│   └── helpers.py              # Shared helper functions
+│   └── decorators.py
+│   └── zone_management.py
 
 
 /Users/omkarsinhsolanki/Documents/GitHub/new_dashboard_project
