@@ -1,0 +1,603 @@
+{
+  "sectors": {
+    "NIFTY PHARMA": [
+      {
+        "price_low": 21300,
+        "price_high": 21600,
+        "direction": "demand",
+        "type": "W",
+        "strength": 7,
+        "base": 4,
+        "timestamp": "2025-05-23T17:53:07.956512"
+      },
+      {
+        "price_low": 21400,
+        "price_high": 21500,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 6,
+        "base": 4,
+        "timestamp": "2025-05-23T17:53:48.135704"
+      }
+    ],
+    "NIFTY INFRA": [
+      {
+        "price_low": 9000,
+        "price_high": 9500,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 6,
+        "base": 4,
+        "timestamp": "2025-05-23T18:06:33.924373"
+      }
+    ],
+    "NIFTY CONSR DURBL": [
+      {
+        "price_low": 37000,
+        "price_high": 38000,
+        "direction": "supply",
+        "type": "W",
+        "strength": 4,
+        "base": 8,
+        "timestamp": "2025-05-23T17:40:47.193767"
+      },
+      {
+        "price_low": 37500,
+        "price_high": 37700,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 4,
+        "base": 8,
+        "timestamp": "2025-05-23T17:41:12.034473"
+      }
+    ],
+    "NIFTY IT": [
+      {
+        "price_low": 37000,
+        "price_high": 37760,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 7,
+        "base": 4,
+        "timestamp": "2025-05-23T18:22:03.321200"
+      }
+    ],
+    "NIFTY PSU BANK": [
+      {
+        "price_low": 6000,
+        "price_high": 7200,
+        "direction": "demand",
+        "type": "M",
+        "strength": 6,
+        "base": 4,
+        "timestamp": "2025-05-23T18:36:09.121192"
+      },
+      {
+        "price_low": 6600,
+        "price_high": 6800,
+        "direction": "demand",
+        "type": "W",
+        "strength": 6,
+        "base": 5,
+        "timestamp": "2025-05-23T18:36:48.736384"
+      },
+      {
+        "price_low": 6650,
+        "price_high": 6750,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 5,
+        "base": 5,
+        "timestamp": "2025-05-23T18:37:08.087567"
+      }
+    ],
+    "NIFTY AUTO": [
+      {
+        "price_low": 23000,
+        "price_high": 24000,
+        "direction": "supply",
+        "type": "M",
+        "strength": 6,
+        "base": 5,
+        "timestamp": "2025-05-23T18:40:28.785332"
+      }
+    ]
+  },
+  "stocks": {
+    "SUNPHARMA": [
+      {
+        "price_low": 1600,
+        "price_high": 1700,
+        "direction": "demand",
+        "type": "W",
+        "strength": 6,
+        "base": 3,
+        "timestamp": "2025-05-23T17:54:42.460613"
+      },
+      {
+        "price_low": 1660,
+        "price_high": 1700,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 5,
+        "base": 3,
+        "timestamp": "2025-05-23T17:55:14.362615"
+      }
+    ],
+    "BLUESTARCO": [
+      {
+        "price_low": 1500,
+        "price_high": 1600,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 7,
+        "base": 7,
+        "timestamp": "2025-05-22T15:28:35.733999"
+      },
+      {
+        "price_low": 1450,
+        "price_high": 1640,
+        "direction": "demand",
+        "type": "W",
+        "strength": 6,
+        "base": 3,
+        "timestamp": "2025-05-22T16:55:02.091655"
+      }
+    ],
+    "TITAN": [
+      {
+        "price_low": 3500,
+        "price_high": 3600,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 7,
+        "base": 3,
+        "timestamp": "2025-05-22T17:12:32.693246"
+      },
+      {
+        "price_low": 3545,
+        "price_high": 3570,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 5,
+        "base": 7,
+        "timestamp": "2025-05-23T01:47:57.758486"
+      }
+    ],
+    "WHIRLPOOL": [
+      {
+        "price_low": 1250,
+        "price_high": 1300,
+        "direction": "supply",
+        "type": "W",
+        "strength": 5,
+        "base": 7,
+        "timestamp": "2025-05-23T01:23:57.052400"
+      },
+      {
+        "price_low": 1260,
+        "price_high": 1290,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 3,
+        "base": 6,
+        "timestamp": "2025-05-23T01:24:25.751913"
+      }
+    ],
+    "HAVELLS": [
+      {
+        "price_low": 1500,
+        "price_high": 1600,
+        "direction": "supply",
+        "type": "W",
+        "strength": 7,
+        "base": 2,
+        "timestamp": "2025-05-23T17:50:11.984371"
+      },
+      {
+        "price_low": 1550,
+        "price_high": 1580,
+        "direction": "supply",
+        "type": "D2",
+        "strength": 5,
+        "base": 2,
+        "timestamp": "2025-05-23T17:50:38.973651"
+      }
+    ],
+    "DIXON": [
+      {
+        "price_low": 15000,
+        "price_high": 15200,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 6,
+        "base": 7,
+        "timestamp": "2025-05-23T01:28:55.066816"
+      }
+    ],
+    "RAJESHEXPO": [
+      {
+        "price_low": 190,
+        "price_high": 200,
+        "direction": "supply",
+        "type": "D2",
+        "strength": 7,
+        "base": 8,
+        "timestamp": "2025-05-23T01:29:58.965898"
+      },
+      {
+        "price_low": 180,
+        "price_high": 205,
+        "direction": "supply",
+        "type": "W",
+        "strength": 4,
+        "base": 7,
+        "timestamp": "2025-05-23T01:30:22.283237"
+      }
+    ],
+    "VOLTAS": [
+      {
+        "price_low": 1250,
+        "price_high": 1300,
+        "direction": "demand",
+        "type": "D2",
+        "strength": 5,
+        "base": 6,
+        "timestamp": "2025-05-23T01:30:59.315423"
+      }
+    ],
+    "VGUARD": [
+      {
+        "price_low": 380,
+        "price_high": 390,
+        "direction": "supply",
+        "type": "D2",
+        "strength": 3,
+        "base": 7,
+        "timestamp": "2025-05-23T01:46:17.599612"
+      }
+    ],
+    "BATAINDIA": [
+      {
+        "price_low": 1250,
+        "price_high": 1310,
+        "direction": "supply",
+        "type": "W",
+        "strength": 4,
+        "base": 8,
+        "timestamp": "2025-05-23T01:52:03.688400"
+      }
+    ],
+    "GLENMARK": [
+      {
+        "price_low": 1400,
+        "price_high": 1500,
+        "direction": "demand",
+        "type": "W",
+        "strength": 7,
+        "base": 5,
+        "timestamp": "2025-05-23T02:11:46.013760"
+      },
+      {
+        "price_low": 1415,
+        "price_high": 1450,
+        "direction": "demand",
+        "type": "D2",
+        "strength": 5,
+        "base": 4,
+        "timestamp": "2025-05-23T02:12:12.362611"
+      }
+    ],
+    "AUROPHARMA": [
+      {
+        "price_low": 1160,
+        "price_high": 2000,
+        "direction": "demand",
+        "type": "D2",
+        "strength": 7,
+        "base": 4,
+        "timestamp": "2025-05-23T17:56:02.443545"
+      }
+    ],
+    "LUPIN": [
+      {
+        "price_low": 1950,
+        "price_high": 1980,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 6,
+        "base": 4,
+        "timestamp": "2025-05-23T02:14:02.796228"
+      }
+    ],
+    "ALKEM": [
+      {
+        "price_low": 5250,
+        "price_high": 5310,
+        "direction": "supply",
+        "type": "D2",
+        "strength": 7,
+        "base": 5,
+        "timestamp": "2025-05-23T02:26:53.960643"
+      }
+    ],
+    "CIPLA": [
+      {
+        "price_low": 1450,
+        "price_high": 1500,
+        "direction": "demand",
+        "type": "W",
+        "strength": 6,
+        "base": 8,
+        "timestamp": "2025-05-23T02:35:10.974449"
+      },
+      {
+        "price_low": 1460,
+        "price_high": 1485,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 5,
+        "base": 7,
+        "timestamp": "2025-05-23T02:35:44.306700"
+      }
+    ],
+    "ZYDUSLIFE": [
+      {
+        "price_low": 900,
+        "price_high": 935,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 6,
+        "base": 5,
+        "timestamp": "2025-05-23T17:57:30.676642"
+      }
+    ],
+    "GMRP&UI": [
+      {
+        "price_low": 117,
+        "price_high": 122,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 5,
+        "base": 2,
+        "timestamp": "2025-05-23T02:51:09.441187"
+      }
+    ],
+    "BHEL": [
+      {
+        "price_low": 240,
+        "price_high": 255,
+        "direction": "demand",
+        "type": "W",
+        "strength": 6,
+        "base": 3,
+        "timestamp": "2025-05-23T02:51:38.158055"
+      },
+      {
+        "price_low": 250,
+        "price_high": 260,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 8,
+        "base": 5,
+        "timestamp": "2025-05-23T18:18:16.517403"
+      }
+    ],
+    "BEL": [
+      {
+        "price_low": 370,
+        "price_high": 400,
+        "direction": "demand",
+        "type": "W",
+        "strength": 4,
+        "base": 8,
+        "timestamp": "2025-05-23T02:53:24.390851"
+      },
+      {
+        "price_low": 378,
+        "price_high": 390,
+        "direction": "demand",
+        "type": "D2",
+        "strength": 5,
+        "base": 7,
+        "timestamp": "2025-05-23T02:53:42.759054"
+      }
+    ],
+    "RECLTD": [
+      {
+        "price_low": 375,
+        "price_high": 410,
+        "direction": "demand",
+        "type": "W",
+        "strength": 6,
+        "base": 5,
+        "timestamp": "2025-05-23T02:54:34.223330"
+      }
+    ],
+    "IOC": [],
+    "PFC": [
+      {
+        "price_low": 375,
+        "price_high": 410,
+        "direction": "demand",
+        "type": "W",
+        "strength": 7,
+        "base": 4,
+        "timestamp": "2025-05-23T02:55:37.657418"
+      },
+      {
+        "price_low": 403,
+        "price_high": 410,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 6,
+        "base": 5,
+        "timestamp": "2025-05-23T18:19:43.430856"
+      }
+    ],
+    "TORNTPHARM": [
+      {
+        "price_low": 3150,
+        "price_high": 3300,
+        "direction": "supply",
+        "type": "W",
+        "strength": 7,
+        "base": 5,
+        "timestamp": "2025-05-23T17:58:39.710635"
+      }
+    ],
+    "NTPC": [
+      {
+        "price_low": 340,
+        "price_high": 350,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 8,
+        "base": 5,
+        "timestamp": "2025-05-23T18:19:03.781489"
+      }
+    ],
+    "WIPRO": [
+      {
+        "price_low": 245,
+        "price_high": 250,
+        "direction": "supply",
+        "type": "D2",
+        "strength": 5,
+        "base": 7,
+        "timestamp": "2025-05-23T18:25:40.181488"
+      }
+    ],
+    "BSOFT": [
+      {
+        "price_low": 420,
+        "price_high": 440,
+        "direction": "supply",
+        "type": "W",
+        "strength": 6,
+        "base": 7,
+        "timestamp": "2025-05-23T18:26:15.312559"
+      },
+      {
+        "price_low": 420,
+        "price_high": 430,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 7,
+        "base": 7,
+        "timestamp": "2025-05-23T18:26:29.777629"
+      }
+    ],
+    "TECHM": [
+      {
+        "price_low": 1550,
+        "price_high": 1600,
+        "direction": "supply",
+        "type": "D2",
+        "strength": 8,
+        "base": 6,
+        "timestamp": "2025-05-23T18:27:10.646027"
+      }
+    ],
+    "MPHASIS": [
+      {
+        "price_low": 2530,
+        "price_high": 2550,
+        "direction": "supply",
+        "type": "M",
+        "strength": 5,
+        "base": 6,
+        "timestamp": "2025-05-23T18:28:17.727754"
+      },
+      {
+        "price_low": 2530,
+        "price_high": 2550,
+        "direction": "supply",
+        "type": "W",
+        "strength": 5,
+        "base": 7,
+        "timestamp": "2025-05-23T18:28:27.495441"
+      },
+      {
+        "price_low": 2530,
+        "price_high": 2550,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 4,
+        "base": 7,
+        "timestamp": "2025-05-23T18:28:46.293819"
+      }
+    ],
+    "PNB": [
+      {
+        "price_low": 92,
+        "price_high": 105,
+        "direction": "demand",
+        "type": "M",
+        "strength": 3,
+        "base": 5,
+        "timestamp": "2025-05-23T18:37:58.597429"
+      },
+      {
+        "price_low": 98,
+        "price_high": 103,
+        "direction": "demand",
+        "type": "W",
+        "strength": 6,
+        "base": 5,
+        "timestamp": "2025-05-23T18:38:11.364804"
+      }
+    ],
+    "BANKBARODA": [
+      {
+        "price_low": 220,
+        "price_high": 250,
+        "direction": "demand",
+        "type": "M",
+        "strength": 5,
+        "base": 4,
+        "timestamp": "2025-05-23T18:38:45.963330"
+      }
+    ],
+    "CANBK": [
+      {
+        "price_low": 100,
+        "price_high": 120,
+        "direction": "demand",
+        "type": "M",
+        "strength": 6,
+        "base": 4,
+        "timestamp": "2025-05-23T18:39:14.798094"
+      },
+      {
+        "price_low": 105,
+        "price_high": 110,
+        "direction": "demand",
+        "type": "W",
+        "strength": 7,
+        "base": 3,
+        "timestamp": "2025-05-23T18:39:33.864036"
+      }
+    ],
+    "TATAMOTORS": [
+      {
+        "price_low": 700,
+        "price_high": 750,
+        "direction": "supply",
+        "type": "M",
+        "strength": 5,
+        "base": 8,
+        "timestamp": "2025-05-23T18:41:14.008928"
+      },
+      {
+        "price_low": 710,
+        "price_high": 730,
+        "direction": "supply",
+        "type": "W",
+        "strength": 6,
+        "base": 8,
+        "timestamp": "2025-05-23T18:41:36.963561"
+      }
+    ]
+  }
+}

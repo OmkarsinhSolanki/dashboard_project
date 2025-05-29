@@ -1,0 +1,17 @@
+{
+  "demand_d2": [],
+  "demand_d1": [
+    {
+      "stock": "LUPIN",
+      "zone_display": "D1",
+      "zone_total": 10,
+      "rsi": 4,
+      "sr": 2,
+      "fib": 3,
+      "rr": 4.8,
+      "timestamp": "2025-05-27T00:20:29.513818"
+    }
+  ],
+  "supply_d2": [],
+  "supply_d1": []
+}

@@ -1,0 +1,2917 @@
+
+project/
+|______ main_app.py             # Main app entry point
+|______ stocks_filter.py        # Stocks filtering area
+|______ value_editor.py         # Value editing area
+|
+|__ A token/                    # Utility functions
+│   └── access_token.py
+│   └── fetch_tokens.py
+|
+|__ venv/                       # all the libraies 
+│   └── .env                    # has my_api_key, my_api_secret, my_access_token
+|
+|__ utils/                      # Utility functions
+│   └── __init__.py
+│   └── helpers.py              # Shared helper functions
+│   └── decorators.py
+│   └── zone_management.py
+|
+|__ components/                 # UI components
+│   └── __init__.py
+│   └── manual_list.py          # Box 6A
+│   └── demand_zones.py         # Box 6B
+│   └── supply_zones.py         # Box 6C
+│   └── confirmation.py         # Box 6D
+│   └── top_picks.py            # Box 6E
+│   └── chart.py
+|
+|__ data/                       # data related files
+│   └── __init__.py
+│   └── confirmation_list.json
+│   └── sectors.json            # sectors list
+│   └── settings.py             # API keys and tokkens
+│   └── stock_map.json          # sector wise stocks list
+│   └── stocks_token_map.py
+│   └── top_picks.json
+│   └── zone_definitions.json
+|
+|__ livedata/                   # data related codes
+│   └── __init__.py
+│   └── caching.py
+│   └── data_loader.py          # loads the data
+│   └── data_normalizer.py
+│   └── data_provider.py 
+│   └── live_data_provider.py
+│   └── live_market_data_services.py
+
+
+
+cd /Users/omkarsinhsolanki/Documents/GitHub/dashboard_project_core
+git add .
+git commit -m "new streamlit update"
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+#=================================================
+#=================================================
+# main_app.py  
+#=================================================
+#=================================================
+#===================================================================================================================
+
+import streamlit as st
+from stocks_filter import main as box6_main
+from value_editor import main as value_editor_main
+
+# Configure page
+st.set_page_config(
+    page_title="Stock Analysis Dashboard", 
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Custom CSS to hide the default Streamlit menu and footer
+hide_st_style = """
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    </style>
+"""
+st.markdown(hide_st_style, unsafe_allow_html=True)
+
+# Sidebar navigation
+st.sidebar.title("Stock Analysis")
+st.sidebar.markdown("---")
+app_mode = st.sidebar.radio(
+    "Navigation",
+    ["📊 Dashboard", "✏️ Value Editor"],
+    index=0
+)
+
+# Main app logic
+if app_mode == "📊 Dashboard":
+    box6_main()
+else:
+    value_editor_main()
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+#=================================================
+#=================================================
+# stocks_filter.py  
+#=================================================
+#=================================================
+#===================================================================================================================
+
+import streamlit as st
+from pathlib import Path
+import json
+import time
+from datetime import datetime
+from livedata.data_loader import DataLoader
+from components.manual_list import render_manual_tab
+from components.demand_zones import render_zone_tab as render_demand_zone_tab
+from components.supply_zones import render_zone_tab as render_supply_zone_tab
+from components.confirmation import render_confirmation_list
+from components.top_picks import render_top_picks
+from components.chart import render_chart
+
+def main():
+    # Initialize session state variables FIRST
+    if 'refresh_settings' not in st.session_state:
+        st.session_state.refresh_settings = {
+            'interval': 10,  # Default 1 minute
+            'last_refresh': time.time(),
+            'auto_refresh': True
+        }
+
+    # Refresh interval control - SIMPLIFIED AND RELIABLE
+    current_interval = st.session_state.refresh_settings['interval']
+    new_interval = st.number_input(
+        "Refresh Interval (minutes)",
+        min_value=1,
+        max_value=60,
+        value=current_interval,
+        step=1,
+        key='refresh_interval_input'
+    )
+
+    # Update session state if changed
+    if new_interval != current_interval:
+        st.session_state.refresh_settings['interval'] = new_interval
+        st.session_state.refresh_settings['last_refresh'] = time.time()
+        st.rerun()
+
+    # Auto-refresh logic
+    current_time = time.time()
+    elapsed = current_time - st.session_state.refresh_settings['last_refresh']
+    refresh_interval_seconds = st.session_state.refresh_settings['interval'] * 60
+
+    if elapsed >= refresh_interval_seconds:
+        st.session_state.refresh_settings['last_refresh'] = current_time
+        st.rerun()
+
+    # Meta refresh tag
+    time_remaining = max(1, int(refresh_interval_seconds - elapsed))
+    st.write(f'<meta http-equiv="refresh" content="{time_remaining}">', unsafe_allow_html=True)
+
+    # Create DataLoader instance 
+    data_loader = DataLoader()
+
+    # Load data using the instance
+    MANUAL_SECTOR_ORDER = data_loader.load_sectors()
+    MANUAL_STOCK_MAP = data_loader.load_stock_map()
+
+    all_symbols = list(MANUAL_STOCK_MAP.keys())
+    for sector_stocks in MANUAL_STOCK_MAP.values():
+        all_symbols.extend(sector_stocks)
+    stock_data = data_loader.get_bulk_data(all_symbols)
+
+    # Initialize other session state variables
+    if "confirmation_list" not in st.session_state:
+        try:
+            path = Path(__file__).parent / "data" / "confirmation_list.json"
+            with open(path) as f:
+                st.session_state.confirmation_list = json.load(f)
+        except:
+            st.session_state.confirmation_list = {
+                "demand_d2": [],
+                "demand_d1": [],
+                "supply_d2": [],
+                "supply_d1": []
+            }
+            
+    if "top_picks" not in st.session_state:
+        try:
+            path = Path(__file__).parent / "data" / "top_picks.json"
+            with open(path) as f:
+                st.session_state.top_picks = json.load(f)
+        except:
+            st.session_state.top_picks = {
+                "demand_d2": [],
+                "demand_d1": [],
+                "supply_d2": [],
+                "supply_d1": []
+            }
+                    
+    if "score_edits" not in st.session_state:
+        st.session_state.score_edits = {}
+
+    if "score_data" not in st.session_state:
+        st.session_state.score_data = {}
+
+    # Constants
+    sub_tab_labels = ["Daily-Daily", "Weekly-Daily", "Weekly-Weekly", "Monthly-Monthly"]
+    confirmation_subtabs = ["Demand D2", "Demand D1", "Supply D2", "Supply D1"]
+
+    # Main App Layout
+    st.subheader("Stocks Filter")
+
+    # Then: Render Tabs below the chart
+    main_tabs = st.tabs([
+        "Box 6A Manual List", 
+        "Box 6B Demand Zones", 
+        "Box 6C Supply Zones", 
+        "Box 6D Confirmation List", 
+        "Box 6E Top Picks"
+    ])
+
+    with main_tabs[0]:
+        render_manual_tab()
+
+    with main_tabs[1]:  # Demand Zones
+        demand_sub_tabs = st.tabs(["Daily-Daily", "Weekly-Daily", "Weekly-Weekly", "Monthly-Monthly"])
+        for i, label in enumerate(sub_tab_labels):
+            with demand_sub_tabs[i]:
+                render_demand_zone_tab(MANUAL_STOCK_MAP, stock_data, label, "demand")
+
+    with main_tabs[2]:  # Supply Zones
+        supply_sub_tabs = st.tabs(["Daily-Daily", "Weekly-Daily", "Weekly-Weekly", "Monthly-Monthly"])
+        for i, label in enumerate(sub_tab_labels):
+            with supply_sub_tabs[i]:
+                render_supply_zone_tab(MANUAL_STOCK_MAP, stock_data, label, "supply")
+
+    with main_tabs[3]:
+        render_confirmation_list(stock_data)  
+
+    with main_tabs[4]:
+        render_top_picks(stock_data)
+
+    st.title("")
+    render_chart()
+
+if __name__ == "__main__":
+    st.set_page_config(page_title="Zone Dashboard", layout="wide")
+    main()
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+#=================================================
+#=================================================
+# value_editor.py  
+#=================================================
+#=================================================
+#===================================================================================================================
+
+import streamlit as st
+import json
+from datetime import datetime
+from pathlib import Path
+from fuzzywuzzy import process
+
+def load_zone_data():
+    path = Path(__file__).parent / "data" / "zone_definitions.json"
+    if not path.exists():
+        return {"sectors": {}, "stocks": {}}
+    with open(path) as f:
+        return json.load(f)
+
+def save_zone_data(data):
+    path = Path(__file__).parent / "data" / "zone_definitions.json"
+    with open(path, 'w') as f:
+        json.dump(data, f, indent=2)
+
+def load_confirmation_data():
+    path = Path(__file__).parent / "data" / "confirmation_list.json"
+    if not path.exists():
+        return {
+            "demand_d2": [],
+            "demand_d1": [],
+            "supply_d2": [],
+            "supply_d1": []
+        }
+    with open(path) as f:
+        return json.load(f)
+
+def save_confirmation_data(data):
+    path = Path(__file__).parent / "data" / "confirmation_list.json"
+    with open(path, 'w') as f:
+        json.dump(data, f, indent=2)
+
+def load_stock_map():
+    path = Path(__file__).parent / "data" / "stock_map.json"
+    with open(path) as f:
+        return json.load(f)
+
+def load_sectors():
+    path = Path(__file__).parent / "data" / "sectors.json"
+    with open(path) as f:
+        return list(json.load(f).keys())
+
+def get_all_stocks():
+    stock_map = load_stock_map()
+    all_stocks = []
+    for sector_stocks in stock_map.values():
+        all_stocks.extend(sector_stocks)
+    return sorted(list(set(all_stocks)))  # Remove duplicates and sort
+
+def fuzzy_search(query, choices, limit=5):
+    """Fuzzy search with autocomplete"""
+    if not query:
+        return []
+    results = process.extract(query, choices, limit=limit)
+    return [result[0] for result in results]
+
+def display_zone_form(zone_type, selected_item):
+    zones_data = load_zone_data()
+    key = 'sectors' if zone_type == 'sector' else 'stocks'
+        
+    with st.form(f"{zone_type}_zone_form"):
+        col1, col2 = st.columns(2)
+        price_low = col1.number_input("Price Low", value=0, step=1, key=f"{zone_type}_low")
+        price_high = col2.number_input("Price High", value=0, step=1, key=f"{zone_type}_high")
+        
+        direction = st.selectbox("Direction", ["demand", "supply"], key=f"{zone_type}_dir")
+        z_type = st.selectbox("Zone Type", ["D1", "D2", "W", "M"], key=f"{zone_type}_type")
+        
+        col3, col4 = st.columns(2)
+        strength = col3.number_input("Strength", min_value=0, max_value=10, value=0, key=f"{zone_type}_str")
+        base = col4.number_input("Base", min_value=0, max_value=10, value=0, key=f"{zone_type}_base")
+        
+        if st.form_submit_button("Add Zone"):
+            new_zone = {
+                "price_low": price_low,
+                "price_high": price_high,
+                "direction": direction,
+                "type": z_type,
+                "strength": strength,
+                "base": base,
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            if selected_item not in zones_data[key]:
+                zones_data[key][selected_item] = []
+            
+            zones_data[key][selected_item].append(new_zone)
+            save_zone_data(zones_data)
+            st.success(f"{zone_type.capitalize()} zone added successfully!")
+            st.rerun()
+
+    existing_zones = zones_data[key].get(selected_item, [])
+    if existing_zones:
+        for i, zone in enumerate(existing_zones):
+            with st.expander(f"Zone {i+1}: {zone['type']}"):
+                st.json(zone)
+                if st.button(f"Delete Zone {i+1}", key=f"del_{zone_type}_{selected_item}_{i}"):
+                    zones_data[key][selected_item].pop(i)
+                    save_zone_data(zones_data)
+                    st.rerun()
+
+def get_stock_zone_info(stock):
+    """Get zone type and daily zone total score for a stock"""
+    zones_data = load_zone_data()
+    stock_zones = zones_data.get('stocks', {}).get(stock, [])
+    
+    if not stock_zones:
+        return "", 0
+    
+    # Filter for daily zones only (D1, D2)
+    daily_zones = [z for z in stock_zones if z['type'] in ['D1', 'D2']]
+    
+    if not daily_zones:
+        return "", 0
+    
+    # Get zone types (without direction)
+    zone_types = [z['type'] for z in daily_zones]
+    
+    # Calculate total score from daily zones only
+    total_score = sum(z['strength'] + z['base'] for z in daily_zones)
+    
+    # Format zone display without direction indicators
+    zone_display = " + ".join(zone_types)
+    
+    return zone_display, total_score
+
+def display_confirmation_form(selected_stock):
+    confirmation_data = load_confirmation_data()
+    
+    with st.form(f"confirmation_form_{selected_stock}"):
+        # Confirmation list selection
+        list_options = ["Demand D2", "Demand D1", "Supply D2", "Supply D1"]
+        selected_list = st.selectbox("Confirmation List", list_options)
+        
+        # Get zone info for this stock
+        zone_display, zone_total = get_stock_zone_info(selected_stock)
+        
+        # Display zone info (read-only)
+        st.markdown(f"**Zone Info:** {zone_display}, Total: {zone_total}")
+        
+        # Score inputs
+        col1, col2, col3, col4 = st.columns(4)
+        rsi_score = col1.number_input("RSI Score", min_value=0, max_value=10, value=0, step=1)
+        sr_score = col2.number_input("S&R Score", min_value=0, max_value=10, value=0, step=1)
+        fib_score = col3.number_input("Fib Score", min_value=0, max_value=10, value=0, step=1)
+        rr_value = col4.number_input("RR Value", min_value=0.0, max_value=10.0, value=0.0, step=0.1, format="%.1f")
+        
+        if st.form_submit_button("Add to Confirmation List"):
+            list_key = selected_list.lower().replace(" ", "_")
+            
+            # Create new entry
+            new_entry = {
+                "stock": selected_stock,
+                "zone_display": zone_display,
+                "zone_total": zone_total,
+                "rsi": rsi_score,
+                "sr": sr_score,
+                "fib": fib_score,
+                "rr": rr_value,
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            # Add to confirmation list
+            confirmation_data[list_key].append(new_entry)
+            save_confirmation_data(confirmation_data)
+            st.success(f"Added {selected_stock} to {selected_list} confirmation list!")
+            st.rerun()
+    
+    # Display existing confirmation entries for this stock
+    found_entries = False
+    
+    for list_name, entries in confirmation_data.items():
+        stock_entries = [e for e in entries if e["stock"] == selected_stock]
+        
+        if stock_entries:
+            found_entries = True
+            for i, entry in enumerate(stock_entries):
+                with st.expander(f"{list_name.replace('_', ' ').title()} Entry #{i+1}", expanded=False):
+                    # Handle legacy entries
+                    zone_disp = entry.get('zone_display', 'N/A')
+                    zone_tot = entry.get('zone_total', 0)
+                    rsi = entry.get('rsi', 0)
+                    sr = entry.get('sr', 0)
+                    fib = entry.get('fib', 0)
+                    rr = entry.get('rr', 0.0)
+                    final_score = zone_tot + rsi + sr + fib
+                    
+                    st.markdown(f"""
+                    Stock: {entry['stock']}  
+                    Zone: {zone_disp}  
+                    Total: {zone_tot}  
+                    RSI: {rsi}  
+                    S&R: {sr}  
+                    Fib: {fib}  
+                    RR: {rr:.1f}  
+                    Final Score: {final_score}
+                    """)
+                    
+                    if st.button(f"Delete This Entry", key=f"del_conf_{entry['stock']}_{list_name}_{entry['timestamp']}"):
+                        confirmation_data[list_name] = [e for e in entries if e != entry]
+                        save_confirmation_data(confirmation_data)
+                        st.rerun()
+    
+    if not found_entries:
+        st.info("No confirmation entries found for this stock")
+
+def load_top_picks_data():
+    path = Path(__file__).parent / "data" / "top_picks.json"
+    if not path.exists():
+        return {
+            "demand_d2": [],
+            "demand_d1": [],
+            "supply_d2": [],
+            "supply_d1": []
+        }
+    with open(path) as f:
+        return json.load(f)
+
+def save_top_picks_data(data):
+    path = Path(__file__).parent / "data" / "top_picks.json"
+    with open(path, 'w') as f:
+        json.dump(data, f, indent=2)
+
+def display_top_picks_form(selected_stock):
+    top_picks_data = load_top_picks_data()
+    confirmation_data = load_confirmation_data()
+
+    with st.form(f"top_picks_form_{selected_stock}"):
+        # Get stock info for display
+        zone_display, zone_total = get_stock_zone_info(selected_stock)
+        
+        # Initialize variables
+        rr_score = 0.0
+        final_score = zone_total
+        has_confirmation_entry = False
+        
+        # Check if stock exists in any confirmation list
+        for list_name, entries in confirmation_data.items():
+            for entry in entries:
+                if entry["stock"] == selected_stock:
+                    has_confirmation_entry = True
+                    rr_score = max(rr_score, entry.get("rr", 0.0))
+                    rsi = entry.get("rsi", 0)
+                    sr = entry.get("sr", 0)
+                    fib = entry.get("fib", 0)
+                    final_score = max(final_score, zone_total + rsi + sr + fib)
+                    break
+            if has_confirmation_entry:
+                break
+        
+        # Display stock info (read-only)
+        cols = st.columns([1.5, 1, 1.5, 1.5, 1])
+        with cols[0]:
+            st.markdown("Stock Info:")
+        with cols[1]:
+            st.markdown(zone_display)
+        with cols[2]:
+            st.markdown(f"Total: {zone_total}")
+        with cols[3]:
+            st.markdown(f"Final: {final_score}")
+        with cols[4]:
+            st.markdown(f"{rr_score:.1f}")      
+        
+        # Top picks list selection
+        list_options = ["Demand D2", "Demand D1", "Supply D2", "Supply D1"]
+        selected_list = st.selectbox("Top Picks List", list_options)
+        
+        # In Trade and Double Conf selection
+        col1, col2 = st.columns(2)
+        double_conf = col1.radio("Double Confirmation", ["yes", "No"], horizontal=True)
+        in_trade = col2.radio("In Trade", ["✅", "No"], horizontal=True)
+        
+        if st.form_submit_button("Add to Top Picks"):
+            if not has_confirmation_entry:
+                st.warning("⚠️ This stock must first be added to the Confirmation List before it can be added to Top Picks.")
+            else:
+                list_key = selected_list.lower().replace(" ", "_")
+                
+                # Create new entry
+                new_entry = {
+                    "stock": selected_stock,
+                    "zone_display": zone_display,
+                    "zone_total": zone_total,
+                    "final_score": final_score,
+                    "rr_score": rr_score,
+                    "in_trade": in_trade,
+                    "double_conf": double_conf,
+                    "timestamp": datetime.now().isoformat()
+                }
+                
+                # Add to top picks list
+                top_picks_data[list_key].append(new_entry)
+                save_top_picks_data(top_picks_data)
+                st.success(f"✅ Added {selected_stock} to {selected_list} top picks!")
+                st.rerun()
+    
+    # Display existing top picks entries for this stock
+    found_entries = False
+    
+    for list_name, entries in top_picks_data.items():
+        stock_entries = [e for e in entries if e["stock"] == selected_stock]
+        
+        if stock_entries:
+            found_entries = True
+            for i, entry in enumerate(stock_entries):
+                with st.expander(f"{list_name.replace('_', ' ').title()} Entry #{i+1}", expanded=False):
+                    st.markdown(f"""
+                    **Stock:** {entry['stock']}  
+                    **Zone:** {entry.get('zone_display', 'N/A')}  
+                    **Total:** {entry.get('zone_total', 0)}  
+                    **Final Score:** {entry.get('final_score', 0)}  
+                    **Double Confirmation:** {entry.get('double_conf', 'No')}  
+                    **In Trade:** {entry.get('in_trade', 'No')}
+                    """)
+                    
+                    if st.button(f"Delete This Entry", key=f"del_top_{entry['stock']}_{list_name}_{entry['timestamp']}"):
+                        top_picks_data[list_name] = [e for e in entries if e != entry]
+                        save_top_picks_data(top_picks_data)
+                        st.rerun()
+    
+    if not found_entries:
+        st.info("No top picks entries found for this stock")
+
+def main():
+    st.subheader("Stocks Value Editor")
+    
+    all_sectors = load_sectors()
+    all_stocks = get_all_stocks()
+    
+    tab1, tab2, tab3, tab4 = st.tabs(["Sectors", "Stocks", "Confirmation List", "Top Picks"])    
+   
+    with tab1:
+        sector_query = st.text_input("Search Sector", key="sector_search", 
+                                   placeholder="Start typing to search sectors...")
+        
+        if sector_query:
+            matched_sectors = fuzzy_search(sector_query, all_sectors)
+            
+            if not matched_sectors:
+                st.warning("No matching sectors found")
+            else:
+                selected_sector = matched_sectors[0]
+                display_zone_form('sector', selected_sector)
+        else:
+            st.info("Enter a sector name to begin")
+    
+    with tab2:
+        stock_query = st.text_input("Search Stock", key="stock_search",
+                                  placeholder="Start typing to search stocks...")
+        
+        if stock_query:
+            matched_stocks = fuzzy_search(stock_query, all_stocks)
+            
+            if not matched_stocks:
+                st.warning("No matching stocks found")
+            else:
+                selected_stock = matched_stocks[0]
+                display_zone_form('stock', selected_stock)
+        else:
+            st.info("Enter a stock name to begin")
+            
+    with tab3:
+        conf_stock_query = st.text_input("Search Stock for Confirmation", key="conf_stock_search",
+                                       placeholder="Start typing to search stocks...")
+        
+        if conf_stock_query:
+            matched_stocks = fuzzy_search(conf_stock_query, all_stocks)
+            
+            if not matched_stocks:
+                st.warning("No matching stocks found")
+            else:
+                selected_stock = matched_stocks[0]
+                display_confirmation_form(selected_stock)
+        else:
+            st.info("Enter a stock name to manage confirmation list entries")
+
+    with tab4:
+        top_picks_query = st.text_input("Search Stock for Top Picks", key="top_picks_search",
+                                      placeholder="Start typing to search stocks...")
+        
+        if top_picks_query:
+            matched_stocks = fuzzy_search(top_picks_query, all_stocks)
+            
+            if not matched_stocks:
+                st.warning("No matching stocks found")
+            else:
+                selected_stock = matched_stocks[0]
+                display_top_picks_form(selected_stock)
+        else:
+            st.info("Enter a stock name to manage top picks entries")
+
+if __name__ == "__main__":
+    st.set_page_config(page_title="Value Editor", layout="wide")
+    main()
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+#=================================================
+#=================================================
+# A token/access_token.py  
+#=================================================
+#=================================================
+#===================================================================================================================
+
+from kiteconnect import KiteConnect
+
+# do every time
+# https://kite.trade/connect/login?api_key=YOUR_API_KEY&v=3
+# use the link ginen above to get new 'request token" and ureplace it with your_request_token down here.
+
+kite = KiteConnect(api_key="YOUR_API_KEY")
+data = kite.generate_session("your_request_token", api_secret="YOUR_API_SECRET")
+access_token = data["access_token"]
+
+print("Access Token:", access_token)
+
+# save and run. you will get new access token.
+
+# after geting access token, update '.env' and data/settings.py
+
+
+
+
+
+
+
+
+#===================================================================================================================
+# A token/access_token.py  
+#===================================================================================================================
+
+import os
+import pandas as pd
+from kiteconnect import KiteConnect
+import logging
+
+logging.basicConfig(level=logging.INFO)
+
+# ---- CONFIG ---- #
+KITE_API_KEY = "my_api_key"
+KITE_API_SECRET = "my_api_secret"
+KITE_ACCESS_TOKEN = "my_access_token"  # You should already have this
+
+INSTRUMENTS_CSV = "nse_instruments.csv"
+
+kite = KiteConnect(api_key=KITE_API_KEY)
+kite.set_access_token(KITE_ACCESS_TOKEN)
+
+# ---- 1. Download instrument list if not present ---- #
+def download_nse_instruments():
+    if not os.path.exists(INSTRUMENTS_CSV):
+        logging.info("Downloading NSE instruments list from Kite...")
+        instruments = kite.instruments("NSE")
+        df = pd.DataFrame(instruments)
+        df.to_csv(INSTRUMENTS_CSV, index=False)
+        logging.info(f"Saved NSE instruments to {INSTRUMENTS_CSV}")
+    else:
+        logging.info(f"Using cached file: {INSTRUMENTS_CSV}")
+
+# ---- 2. Fetch tokens from your symbol list ---- #
+def get_tokens_from_symbols(symbol_list):
+    df = pd.read_csv(INSTRUMENTS_CSV)
+    token_map = {}
+    missing = []
+
+    for symbol in symbol_list:
+        row = df[df['tradingsymbol'] == symbol]
+        if not row.empty:
+            token_map[symbol] = int(row.iloc[0]['instrument_token'])
+        else:
+            missing.append(symbol)
+
+    if missing:
+        for sym in missing:
+            logging.warning(f"Symbol not found in instrument list: {sym}")
+
+    return token_map
+
+# ---- 3. Example Usage ---- #
+if __name__ == "__main__":
+    download_nse_instruments()
+    
+    my_symbols = [
+        "BLUESTARCO", "WHIRLPOOL", "HAVELLS", "DIXON", "RAJESHEXPO", "TITAN", "VGUARD", "VOLTAS", "BATAINDIA", "CROMPTON", "CERA", "KAJARIACER", "KALYANKJIL", "ORIENTELEC", "BAJAJELEC",
+        "NIFTY PHARM", "SUNPHARMA", "GLENMARK", "AUROPHARMA", "LUPIN", "ZYDUSLIFE", "ALKEM", "CIPLA", "TORNTPHARM", "IPCALAB", "DIVISLAB", "DRREDDY", "LALPATHLAB", "APOLLOHOSP",
+        "NIFTY INFRA", "GMRP&UI", "BHEL", "BEL", "RECLTD", "PFC", "NTPC", "COALINDIA", "HAL", "CONCOR", "IRCTC", "POWERGRID", "NMDC",
+        "NIFTY IT", "WIPRO", "BSOFT", "TECHM", "MPHASIS", "HCLTECH", "INFY", "TCS", "LTTS", "LTIM", "COFORGE", "PERSISTENT",
+        "NIFTY PSU BANK", "BANKBARODA", "PNB", "CANBK", "FEDERALBNK", "SBIN", "UNIONBANK", "CENTRALBK", "BANKINDIA", "MAHABANK", "BANDHANBNK",
+        "NIFTY AUTO", "TATAMOTORS", "ASHOKLEY", "M&M", "APOLLOTYRE", "TVSMOTOR", "EXIDEIND", "MOTHERSON", "BALKRISIND", "BAJAJ-AUTO", "EICHERMOT",
+        "NIFTY PSE", "NTPC", "COALINDIA", "HAL", "CONCOR", "BPCL", "ONGC", "IOC", "OIL", "NHPC",
+        "NIFTY FIN SERVICE", "CANFINHOME", "LICHSGFIN", "LTF", "IEX", "MANAPPURAM", "MUTHOOTFIN", "CHOLAFIN", "COROMANDEL",
+        "NIFTY FMCG", "ITC", "HINDUNILVR", "BRITANNIA", "TATACONSUM", "GODREJCP", "VBL", "DABUR", "MARICO",
+        "NIFTY ENERGY", "GAIL", "HINDPETRO", "BPCL", "ONGC", "IOC", "PETRONET", "MGL",
+        "NIFTY METAL", "ADANIENT", "SAIL", "JINDALSTEL", "VEDL", "HINDALCO", "JSWSTEEL", "TATASTEEL",
+        "NIFTY PVT BANK", "AXISBANK", "ICICIBANK", "HDFCBANK", "KOTAKBANK", "INDUSINDBK", "IDFCFIRSTB",
+        "NIFTY REALTY", "DLF"
+    ]
+    
+    tokens = get_tokens_from_symbols(my_symbols)
+    print("Fetched tokens:")
+    for sym, tok in tokens.items():
+        print(f"'{sym}': {tok},")
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+#=================================================
+#=================================================
+# venv/.env  
+#=================================================
+#=================================================
+#===================================================================================================================
+
+API_KEY = "my_api_key"
+API_SECRET = "my_api_secret"
+ACCESS_TOKEN = "my_access_token"
+USE_LIVE_DATA = True  
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+#=================================================
+#=================================================
+# utils/helper.py  
+#=================================================
+#=================================================
+#===================================================================================================================
+
+import streamlit as st
+
+def format_zone_display(zone_types, directions):
+    display_parts = []
+    for z, d in zip(zone_types, directions):
+        if z not in ["D1", "D2", "W", "M"]:
+            continue
+        color = "green" if d == "demand" else "red"
+        display_parts.append(f"<span style='color:{color}'>{z}</span>")
+    return " + ".join(display_parts) if display_parts else "<span style='color:gray'>N</span>"
+
+def get_daily_scores(zone_types, directions, strength, base):
+    for z, d in zip(zone_types, directions):
+        if z in ["D1", "D2"]:
+            return strength, base, strength + base
+    return "-", "-", "-"
+
+def update_rr_check(stock, checkbox_key, list_name):
+    new_state = st.session_state[checkbox_key]
+    for idx, item in enumerate(st.session_state.confirmation_list[list_name]):
+        if item["stock"] == stock:
+            st.session_state.confirmation_list[list_name][idx]["rr_check"] = new_state
+            break
+
+def update_in_trade_check(stock, checkbox_key, list_name):
+    new_state = st.session_state[checkbox_key]
+    for idx, item in enumerate(st.session_state.top_picks[list_name]):
+        if item["stock"] == stock:
+            st.session_state.top_picks[list_name][idx]["in_trade"] = new_state
+            break
+
+def add_to_confirmation_list(stock, sub_tab_key):
+    lst = st.session_state.confirmation_list[sub_tab_key]
+    if stock not in [item["stock"] for item in lst]:
+        lst.append({"stock": stock, "rr_check": False})
+        st.success(f"Added {stock} to Confirmation List {sub_tab_key.upper()}")
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+# utils/decorators.py  
+#===================================================================================================================
+
+import streamlit as st
+
+def handle_data_errors(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            st.error(f"Data error: {str(e)}")
+            # Optionally return mock data or empty result
+            return {}
+    return wrapper
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+# utils/zone_management.py  
+#===================================================================================================================
+
+import json
+from pathlib import Path
+
+def load_zone_data():
+    path = Path(__file__).parent.parent / "data" / "zone_definitions.json"
+    if not path.exists():
+        return {"sectors": {}, "stocks": {}}
+    with open(path) as f:
+        return json.load(f)
+
+def get_zones_for_symbol(symbol, is_sector=False):
+    zones_data = load_zone_data()
+    key = 'sectors' if is_sector else 'stocks'
+    return zones_data.get(key, {}).get(symbol, [])
+
+def get_active_zones(symbol, current_price, is_sector=False):
+    zones = get_zones_for_symbol(symbol, is_sector)
+    active_zones = [
+        zone for zone in zones
+        if zone['price_low'] <= current_price <= zone['price_high']
+    ]
+    return active_zones
+
+def get_zones_with_scores(symbol, is_sector=False):
+    zones_data = load_zone_data()
+    key = 'sectors' if is_sector else 'stocks'
+    zones = zones_data.get(key, {}).get(symbol, [])
+    return [
+        {**zone, 'total_score': zone['strength'] + zone['base']}
+        for zone in zones
+    ]
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+#=================================================
+#=================================================
+# components/manual_list.py  
+#=================================================
+#=================================================
+#===================================================================================================================
+
+import streamlit as st
+from utils.helpers import format_zone_display
+from livedata.data_loader import DataLoader
+from utils.zone_management import get_active_zones  # Add this import
+
+def render_manual_tab():
+    # Initialize DataLoader
+    data_loader = DataLoader()
+
+    # Load data
+    MANUAL_SECTOR_ORDER = data_loader.load_sectors()
+    MANUAL_STOCK_MAP = data_loader.load_stock_map()
+
+    try:
+        all_symbols = list(MANUAL_STOCK_MAP.keys())
+        for sector_stocks in MANUAL_STOCK_MAP.values():
+            all_symbols.extend(sector_stocks)
+        
+        stock_data = data_loader.get_bulk_data(all_symbols)
+    except Exception as e:
+        st.error(f"Error loading data: {e}")
+        stock_data = {}
+
+    # Initialize LiveMarketDataService for priority updates
+    from livedata.live_market_data_services import LiveMarketDataService
+    data_service = LiveMarketDataService()
+    visible_symbols = set()
+
+    # Render zone popup if activated
+    if st.session_state.get('show_zone_popup', False):
+        from utils.zone_management import add_zone_popup
+        target = st.session_state['zone_edit_target']
+        add_zone_popup(target['type'], target['name'])
+
+    st.markdown("")
+    cols = st.columns([2.2, 1.3, 1.1, 1, 1, 1.2, 1])  # Added extra column for Zone button
+    headers = ["Name", "Zone Type", "Strength", "Base", "Total", "Price", "Chart"]
+    
+    for col, h in zip(cols, headers):
+        col.markdown(f"<div style='margin-bottom: 30px;'><large><strong>{h}</strong></large></div>", unsafe_allow_html=True)
+
+    for sector_idx, sector in enumerate(MANUAL_SECTOR_ORDER):
+        sector_data = stock_data.get(sector, {})
+        
+        # Get active zones for sector
+        price = sector_data.get("price", 0)
+        active_zones = get_active_zones(sector, price, is_sector=True)
+        zone_types = [zone['type'] for zone in active_zones]
+        directions = [zone['direction'] for zone in active_zones]
+        strength = sum(zone['strength'] for zone in active_zones) if active_zones else 0
+        base = sum(zone['base'] for zone in active_zones) if active_zones else 0
+
+        # Format display values
+        price_display = f"₹{price:,.2f}" if price else "N/A"
+        zone_display = format_zone_display(zone_types, directions) or "N/A"
+        
+        # Create row columns
+        row = st.columns([2.2, 1.3, 1.1, 1, 1, 1.2, 1])
+        
+        # Display data
+        row[0].markdown(f"<div style='margin-bottom: -10px;'><medium><strong>{sector}</strong></medium></div>", unsafe_allow_html=True)
+        row[1].markdown(f"<div style='margin-bottom: -10px;'><medium>{zone_display}</medium></div>", unsafe_allow_html=True)
+        row[2].markdown(f"<div style='margin-bottom: -10px;'><medium>{strength}</medium></div>", unsafe_allow_html=True)
+        row[3].markdown(f"<div style='margin-bottom: -10px;'><medium>{base}</medium></div>", unsafe_allow_html=True)
+        row[4].markdown(f"<div style='margin-bottom: -10px;'><medium>{strength + base}</medium></div>", unsafe_allow_html=True)
+        row[5].markdown(f"<div style='margin-bottom: -10px;'><medium>{price_display}</medium></div>", unsafe_allow_html=True)
+        
+        if row[6].button("📈", key=f"manual_chart_sector_{sector}_{sector_idx}"):
+            st.session_state['current_chart'] = sector
+            st.rerun()
+            
+        with st.expander("", expanded=False):
+            sorted_stocks = sorted(
+                MANUAL_STOCK_MAP.get(sector, []),
+                key=lambda s: (
+                    stock_data.get(s, {}).get("strength", 0) + 
+                    stock_data.get(s, {}).get("base", 0),
+                ),
+                reverse=True
+            )
+        
+            for stock_idx, stock in enumerate(sorted_stocks):
+                visible_symbols.add(stock)
+                data = stock_data.get(stock, {})
+                
+                # Get active zones for stock
+                price = data.get("price", 0)
+                active_zones = get_active_zones(stock, price)
+                zone_types = [zone['type'] for zone in active_zones]
+                directions = [zone['direction'] for zone in active_zones]
+                s_strength = sum(zone['strength'] for zone in active_zones) if active_zones else 0
+                s_base = sum(zone['base'] for zone in active_zones) if active_zones else 0
+                s_total = s_strength + s_base
+
+                zone_display = format_zone_display(zone_types, directions)
+
+                stock_row = st.columns([2.2, 1.3, 1.1, 1, 1, 1.2, 1])
+                stock_row[0].markdown(f"<div style='margin-bottom: -10px;'><medium>{stock}</medium></div>", unsafe_allow_html=True)
+                stock_row[1].markdown(f"<div style='margin-bottom: -10px;'><medium>{zone_display}</medium></div>", unsafe_allow_html=True)
+                stock_row[2].markdown(f"<div style='margin-bottom: -10px;'><medium>{s_strength}</medium></div>", unsafe_allow_html=True)
+                stock_row[3].markdown(f"<div style='margin-bottom: -10px;'><medium>{s_base}</medium></div>", unsafe_allow_html=True)
+                stock_row[4].markdown(f"<div style='margin-bottom: -10px;'><medium>{s_total}</medium></div>", unsafe_allow_html=True)
+                stock_row[5].markdown(f"<div style='margin-bottom: -10px;'><medium>₹{price:,.2f}</medium></div>", unsafe_allow_html=True)
+                
+                if stock_row[6].button("📈", key=f"manual_chart_stock_{sector}_{stock}_{stock_idx}"):
+                    st.session_state['current_chart'] = stock
+                    st.toast(f"Loading {stock} chart in Box 4...")
+                    
+    # Update priority symbols for live updates
+    data_service.set_priority_symbols(list(visible_symbols))
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+# components/demand_zones.py  
+#===================================================================================================================
+
+import streamlit as st
+from utils.helpers import format_zone_display, get_daily_scores, add_to_confirmation_list
+from livedata.data_loader import DataLoader
+
+data_loader = DataLoader()
+
+# Load data
+MANUAL_SECTOR_ORDER = data_loader.load_sectors()
+MANUAL_STOCK_MAP = data_loader.load_stock_map()
+
+all_symbols = list(MANUAL_STOCK_MAP.keys())
+for sector_stocks in MANUAL_STOCK_MAP.values():
+    all_symbols.extend(sector_stocks)
+stock_data = data_loader.get_bulk_data(all_symbols)
+
+def get_stocks_by_zone(MANUAL_STOCK_MAP, stock_data, tab_type, direction="demand"):
+    from utils.zone_management import get_zones_with_scores
+
+    tab_requirements = {
+        "Daily-Daily": {"sector_zones": ["D1", "D2"], "stock_zones": ["D1", "D2"]},
+        "Weekly-Daily": {"sector_zones": ["W"], "stock_zones": ["D1", "D2"]},
+        "Weekly-Weekly": {"sector_zones": ["W"], "stock_zones": ["W"]},
+        "Monthly-Monthly": {"sector_zones": ["M"], "stock_zones": ["M"]}
+    }
+    req = tab_requirements[tab_type]
+
+    result = {}
+    for sector, stocks in MANUAL_STOCK_MAP.items():
+        # Get sector zones and filter
+        sector_zones = [z for z in get_zones_with_scores(sector, is_sector=True) 
+                      if (z['direction'] == direction and 
+                          z['type'] in req["sector_zones"] and
+                          # Add price check here
+                          z['price_low'] <= stock_data.get(sector, {}).get('price', 0) <= z['price_high'])]
+        
+        if not sector_zones:
+            continue
+
+        # Aggregate sector data (combine all matching zones)
+        sector_zone_types = "/".join({z['type'] for z in sector_zones})
+        sector_strength = sum(z['strength'] for z in sector_zones)
+        sector_base = sum(z['base'] for z in sector_zones)
+        sector_total = sector_strength + sector_base
+
+        # Filter and score stocks
+        matched_stocks = []
+        for stock in stocks:
+            stock_zones = [z for z in get_zones_with_scores(stock, is_sector=False) 
+                         if (z['direction'] == direction and 
+                             z['type'] in req["stock_zones"] and
+                             # Add price check here
+                             z['price_low'] <= stock_data.get(stock, {}).get('price', 0) <= z['price_high'])]
+            
+            if stock_zones:
+                stock_zone_types = "/".join({z['type'] for z in stock_zones})
+                stock_strength = sum(z['strength'] for z in stock_zones)
+                stock_base = sum(z['base'] for z in stock_zones)
+                stock_total = stock_strength + stock_base
+                matched_stocks.append({
+                    'name': stock,
+                    'zone_types': stock_zone_types,
+                    'strength': stock_strength,
+                    'base': stock_base,
+                    'total': stock_total,
+                    'price': stock_data.get(stock, {}).get('price', 0),
+                    'pct_change': stock_data.get(stock, {}).get('pct_change', 0)
+                })
+
+        if matched_stocks:
+            # Sort stocks by total score (descending)
+            matched_stocks.sort(key=lambda x: x['total'], reverse=True)
+            result[sector] = {
+                'zone_types': sector_zone_types,
+                'strength': sector_strength,
+                'base': sector_base,
+                'total': sector_total,
+                'price': stock_data.get(sector, {}).get('price', 0),
+                'pct_change': stock_data.get(sector, {}).get('pct_change', 0),
+                'stocks': matched_stocks
+            }
+
+    # Sort sectors by total score (descending)
+    return dict(sorted(result.items(), key=lambda x: x[1]['total'], reverse=True))
+
+
+def render_zone_tab(MANUAL_STOCK_MAP, stock_data, tab_type, direction="demand"):
+    sectors_data = get_stocks_by_zone(MANUAL_STOCK_MAP, stock_data, tab_type, direction)
+    
+    # Column headers
+    cols = st.columns([2.2, 1.3, 1.1, 1, 1, 1.2, 1])  # Removed the last column
+    headers = ["Name", "Zone Type", "Strength", "Base", "Total", "Price", "Chart"] 
+
+    for col, h in zip(cols, headers):
+        col.markdown(f"<div style='margin-bottom: 10px;'><strong>{h}</strong></div>", unsafe_allow_html=True)
+
+    # Sector rows
+    for sector_idx, (sector, data) in enumerate(sectors_data.items()):
+        row = st.columns([2.2, 1.3, 1.1, 1, 1, 1.2, 1])
+        row[0].markdown(f"**{sector}**")
+        row[1].markdown(data['zone_types'])
+        row[2].markdown(str(data['strength']))
+        row[3].markdown(str(data['base']))
+        row[4].markdown(f"**{data['total']}**")
+        row[5].markdown(f"₹{data['price']:,.2f}")
+        
+        # Chart button
+        if row[6].button("📈", key=f"chart_{direction}_{tab_type}_{sector_idx}_{sector}"):
+            st.session_state['current_chart'] = sector
+
+
+        # Stock rows (in expander)
+        with st.expander("", expanded=False):
+            for stock_idx, stock in enumerate(data['stocks']):
+                s_row = st.columns([2.2, 1.3, 1.1, 1, 1, 1.2, 1])
+                s_row[0].markdown(f"→ {stock['name']}")
+                s_row[1].markdown(stock['zone_types'])
+                s_row[2].markdown(str(stock['strength']))
+                s_row[3].markdown(str(stock['base']))
+                s_row[4].markdown(f"**{stock['total']}**")
+                s_row[5].markdown(f"₹{stock['price']:,.2f}")
+                
+                if s_row[6].button("📈", key=f"chart_{direction}_{tab_type}_{sector_idx}_{stock_idx}_{stock['name']}"):
+                    st.session_state['current_chart'] = stock['name']
+                
+                                
+
+
+
+
+
+
+
+
+#===================================================================================================================
+# components/supply_zones.py  
+#===================================================================================================================
+
+import streamlit as st
+from utils.helpers import format_zone_display, get_daily_scores, add_to_confirmation_list
+from livedata.data_loader import DataLoader
+
+data_loader = DataLoader()
+
+# Load data
+MANUAL_SECTOR_ORDER = data_loader.load_sectors()
+MANUAL_STOCK_MAP = data_loader.load_stock_map()
+
+all_symbols = list(MANUAL_STOCK_MAP.keys())
+for sector_stocks in MANUAL_STOCK_MAP.values():
+    all_symbols.extend(sector_stocks)
+stock_data = data_loader.get_bulk_data(all_symbols)
+
+def get_stocks_by_zone(MANUAL_STOCK_MAP, stock_data, tab_type, direction="supply"):
+    from utils.zone_management import get_zones_with_scores
+
+    tab_requirements = {
+        "Daily-Daily": {"sector_zones": ["D1", "D2"], "stock_zones": ["D1", "D2"]},
+        "Weekly-Daily": {"sector_zones": ["W"], "stock_zones": ["D1", "D2"]},
+        "Weekly-Weekly": {"sector_zones": ["W"], "stock_zones": ["W"]},
+        "Monthly-Monthly": {"sector_zones": ["M"], "stock_zones": ["M"]}
+    }
+    req = tab_requirements[tab_type]
+
+    result = {}
+    for sector, stocks in MANUAL_STOCK_MAP.items():
+        # Get sector zones and filter
+        sector_zones = [z for z in get_zones_with_scores(sector, is_sector=True) 
+                      if (z['direction'] == direction and 
+                          z['type'] in req["sector_zones"] and
+                          # Add price check here
+                          z['price_low'] <= stock_data.get(sector, {}).get('price', 0) <= z['price_high'])]
+        
+        if not sector_zones:
+            continue
+
+        # Aggregate sector data (combine all matching zones)
+        sector_zone_types = "/".join({z['type'] for z in sector_zones})
+        sector_strength = sum(z['strength'] for z in sector_zones)
+        sector_base = sum(z['base'] for z in sector_zones)
+        sector_total = sector_strength + sector_base
+
+        # Filter and score stocks
+        matched_stocks = []
+        for stock in stocks:
+            stock_zones = [z for z in get_zones_with_scores(stock, is_sector=False) 
+                         if (z['direction'] == direction and 
+                             z['type'] in req["stock_zones"] and
+                             # Add price check here
+                             z['price_low'] <= stock_data.get(stock, {}).get('price', 0) <= z['price_high'])]
+            
+            if stock_zones:
+                stock_zone_types = "/".join({z['type'] for z in stock_zones})
+                stock_strength = sum(z['strength'] for z in stock_zones)
+                stock_base = sum(z['base'] for z in stock_zones)
+                stock_total = stock_strength + stock_base
+                matched_stocks.append({
+                    'name': stock,
+                    'zone_types': stock_zone_types,
+                    'strength': stock_strength,
+                    'base': stock_base,
+                    'total': stock_total,
+                    'price': stock_data.get(stock, {}).get('price', 0),
+                    'pct_change': stock_data.get(stock, {}).get('pct_change', 0)
+                })
+
+        if matched_stocks:
+            # Sort stocks by total score (descending)
+            matched_stocks.sort(key=lambda x: x['total'], reverse=True)
+            result[sector] = {
+                'zone_types': sector_zone_types,
+                'strength': sector_strength,
+                'base': sector_base,
+                'total': sector_total,
+                'price': stock_data.get(sector, {}).get('price', 0),
+                'pct_change': stock_data.get(sector, {}).get('pct_change', 0),
+                'stocks': matched_stocks
+            }
+
+    # Sort sectors by total score (descending)
+    return dict(sorted(result.items(), key=lambda x: x[1]['total'], reverse=True))
+
+
+def render_zone_tab(MANUAL_STOCK_MAP, stock_data, tab_type, direction="supply"):
+    sectors_data = get_stocks_by_zone(MANUAL_STOCK_MAP, stock_data, tab_type, direction)
+    
+    # Column headers
+    cols = st.columns([2.2, 1.3, 1.1, 1, 1, 1.2, 1])  # Removed the last column
+    headers = ["Name", "Zone Type", "Strength", "Base", "Total", "Price", "Chart"] 
+
+    for col, h in zip(cols, headers):
+        col.markdown(f"<div style='margin-bottom: 10px;'><strong>{h}</strong></div>", unsafe_allow_html=True)
+
+    # Sector rows
+    for sector_idx, (sector, data) in enumerate(sectors_data.items()):
+        row = st.columns([2.2, 1.3, 1.1, 1, 1, 1.2, 1])
+        row[0].markdown(f"**{sector}**")
+        row[1].markdown(data['zone_types'])
+        row[2].markdown(str(data['strength']))
+        row[3].markdown(str(data['base']))
+        row[4].markdown(f"**{data['total']}**")
+        row[5].markdown(f"₹{data['price']:,.2f}")
+        
+        # Chart button
+        if row[6].button("📈", key=f"chart_{direction}_{tab_type}_{sector_idx}_{sector}"):
+            st.session_state['current_chart'] = sector
+
+
+        # Stock rows (in expander)
+        with st.expander("", expanded=False):
+            for stock_idx, stock in enumerate(data['stocks']):
+                s_row = st.columns([2.2, 1.3, 1.1, 1, 1, 1.2, 1])
+                s_row[0].markdown(f"→ {stock['name']}")
+                s_row[1].markdown(stock['zone_types'])
+                s_row[2].markdown(str(stock['strength']))
+                s_row[3].markdown(str(stock['base']))
+                s_row[4].markdown(f"**{stock['total']}**")
+                s_row[5].markdown(f"₹{stock['price']:,.2f}")
+                
+                if s_row[6].button("📈", key=f"chart_{direction}_{tab_type}_{sector_idx}_{stock_idx}_{stock['name']}"):
+                    st.session_state['current_chart'] = stock['name']
+                
+                                                
+              
+
+
+
+
+
+
+
+#===================================================================================================================
+# components/confirmation.py  
+#===================================================================================================================
+
+# components/confirmation.py
+import streamlit as st
+from utils.helpers import format_zone_display
+from livedata.data_loader import DataLoader
+from utils.zone_management import get_zones_with_scores  # Add this import
+
+data_loader = DataLoader()
+
+# Load data
+MANUAL_SECTOR_ORDER = data_loader.load_sectors()
+MANUAL_STOCK_MAP = data_loader.load_stock_map()
+
+all_symbols = list(MANUAL_STOCK_MAP.keys())
+for sector_stocks in MANUAL_STOCK_MAP.values():
+    all_symbols.extend(sector_stocks)
+stock_data = data_loader.get_bulk_data(all_symbols)
+
+# Constants
+sub_tab_labels = ["Daily-Daily", "Weekly-Daily", "Weekly-Weekly", "Monthly-Monthly"]
+confirmation_subtabs = ["Demand D2", "Demand D1", "Supply D2", "Supply D1"]
+
+def get_stock_zone_info(stock):
+    """Get zone type and daily zone total score for a stock"""
+    zones_data = get_zones_with_scores(stock, is_sector=False)
+    
+    if not zones_data:
+        return "", 0
+    
+    # Filter for daily zones only (D1, D2)
+    daily_zones = [z for z in zones_data if z['type'] in ['D1', 'D2']]
+    
+    if not daily_zones:
+        return "", 0
+    
+    # Get zone types (without direction)
+    zone_types = [z['type'] for z in daily_zones]
+    
+    # Calculate total score from daily zones only
+    total_score = sum(z['strength'] + z['base'] for z in daily_zones)
+    
+    # Format zone display without direction indicators
+    zone_display = " + ".join(zone_types)
+    
+    return zone_display, total_score
+
+def render_confirmation_list(stock_data):
+    from livedata.live_market_data_services import LiveMarketDataService
+    data_service = LiveMarketDataService()
+    
+    visible_symbols = set()
+
+    st.markdown("")
+    subtabs = st.tabs(confirmation_subtabs)
+    
+    for subtab_idx, subtab in enumerate(subtabs):
+        with subtab:
+            list_name = confirmation_subtabs[subtab_idx].lower().replace(" ", "_")
+            stocks = st.session_state.confirmation_list[list_name]
+            
+            # Updated columns to include RR
+            cols = st.columns([1.8, 1.2, 1, 1, 1, 1, 1, 1, 1.2, 1])
+            headers = ["Stock", "Zone Type", "Total", "RSI", "S&R", "Fib", "RR", "Final", "price", "Chart"]
+            for col, h in zip(cols, headers):
+                col.markdown(f"<div style='margin-bottom: 30px;'><large><strong>{h}</strong></large></div>", unsafe_allow_html=True)
+            
+            sorted_stocks = sorted(
+                stocks,
+                key=lambda s: (
+                    get_stock_zone_info(s["stock"])[1] +  # Use zone total from get_stock_zone_info
+                    s.get('rsi', 0) +
+                    s.get('sr', 0) + 
+                    s.get('fib', 0)
+                ),
+                reverse=True
+            )
+            
+            for stock_idx, stock_item in enumerate(sorted_stocks):
+                stock = stock_item["stock"]
+                visible_symbols.add(stock)              
+                data = stock_data.get(stock, {})
+                
+                # Get zone info for this stock
+                zone_display, zone_total = get_stock_zone_info(stock)
+                
+                # Get additional scores from the confirmation entry
+                rsi_score = stock_item.get('rsi', 0)
+                sr_score = stock_item.get('sr', 0)
+                fib_score = stock_item.get('fib', 0)
+                rr_value = stock_item.get('rr', 0.0)               
+                final_score = zone_total + rsi_score + sr_score + fib_score
+                price = data.get('price', 0)
+
+                # Create row with all columns
+                row = st.columns([1.8, 1.2, 1, 1, 1, 1, 1, 1, 1.2, 1])
+                row[0].markdown(f"<span style='color:white'>{stock}</span>", unsafe_allow_html=True)
+                row[1].markdown(zone_display, unsafe_allow_html=True)
+                row[2].markdown(str(zone_total))
+                row[3].markdown(str(rsi_score))
+                row[4].markdown(str(sr_score))
+                row[5].markdown(str(fib_score))
+                row[6].markdown(f"{rr_value:.1f}")  # Display RR with 1 decimal place
+                row[7].markdown(f"**{final_score}**")
+                row[8].markdown(f"₹{price:,.2f}")
+                
+                # Chart button
+                if row[9].button("📈", key=f"confirmation_list_chart_{stock}_{list_name}_{stock_idx}"):
+                    st.session_state['current_chart'] = stock
+                    st.toast(f"Loading {stock} chart in Box 4...")
+
+                
+    data_service.set_priority_symbols(list(visible_symbols))
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+# components/top_picks.py  
+#===================================================================================================================
+
+import streamlit as st
+from utils.helpers import format_zone_display
+from utils.zone_management import get_zones_with_scores  # Add this import
+from livedata.data_loader import DataLoader
+
+data_loader = DataLoader()
+
+# Load data
+MANUAL_SECTOR_ORDER = data_loader.load_sectors()
+MANUAL_STOCK_MAP = data_loader.load_stock_map()
+
+all_symbols = list(MANUAL_STOCK_MAP.keys())
+for sector_stocks in MANUAL_STOCK_MAP.values():
+    all_symbols.extend(sector_stocks)
+stock_data = data_loader.get_bulk_data(all_symbols)
+
+# Constants
+confirmation_subtabs = ["Demand D2", "Demand D1", "Supply D2", "Supply D1"]
+
+def get_stock_zone_info(stock):
+    """Get zone type and daily zone total score for a stock"""
+    zones_data = get_zones_with_scores(stock, is_sector=False)
+    
+    if not zones_data:
+        return "", 0
+    
+    # Filter for daily zones only (D1, D2)
+    daily_zones = [z for z in zones_data if z['type'] in ['D1', 'D2']]
+    
+    if not daily_zones:
+        return "", 0
+    
+    # Get zone types (without direction)
+    zone_types = [z['type'] for z in daily_zones]
+    
+    # Calculate total score from daily zones only
+    total_score = sum(z['strength'] + z['base'] for z in daily_zones)
+    
+    # Format zone display without direction indicators
+    zone_display = " + ".join(zone_types)
+    
+    return zone_display, total_score
+
+
+def render_top_picks(stock_data):
+    from livedata.live_market_data_services import LiveMarketDataService
+    data_service = LiveMarketDataService()
+    
+    visible_symbols = set()
+
+    st.markdown("")
+    subtabs = st.tabs(confirmation_subtabs)
+    
+    for subtab_idx, subtab in enumerate(subtabs):
+        with subtab:
+            list_name = confirmation_subtabs[subtab_idx].lower().replace(" ", "_")
+            stocks = st.session_state.top_picks.get(list_name, [])
+            
+            # Column headers
+            cols = st.columns([2, 1.2, 1, 1, 1.2, 1, 1, 1])
+            headers = ["Stock", "Zone Type", "Total", "Final", "double conf", "In Trade", "Price", "Chart"]
+            for col, h in zip(cols, headers):
+                col.markdown(f"<div style='margin-bottom: 30px;'><large><strong>{h}</strong></large></div>", unsafe_allow_html=True)
+            
+            # Sort by final score descending
+            sorted_stocks = sorted(
+                stocks,
+                key=lambda s: (
+                    stock_data.get(s["stock"], {}).get("strength", 0) + 
+                    stock_data.get(s["stock"], {}).get("base", 0) +
+                    st.session_state.score_data.get(s["stock"], {}).get('rsi', 0) +
+                    st.session_state.score_data.get(s["stock"], {}).get('sr', 0) +
+                    st.session_state.score_data.get(s["stock"], {}).get('fib', 0)
+                ),
+                reverse=True
+            )
+            
+            for stock_idx, stock_item in enumerate(sorted_stocks):
+                stock = stock_item["stock"]
+                visible_symbols.add(stock)
+                data = stock_data.get(stock, {})
+                
+                zone_display, zone_total = get_stock_zone_info(stock)
+                final_score = stock_item.get('final_score', 0)
+                double_conf = stock_item.get('double_conf', 'No')
+                in_trade = stock_item.get('in_trade', 'No')
+                price = data.get('price', 0)
+                
+                
+                # Create row
+                row = st.columns([2, 1.2, 1, 1, 1.2, 1, 1, 1])
+                row[0].markdown(f"<span style='color:white'>{stock}</span>", unsafe_allow_html=True)
+                row[1].markdown(zone_display, unsafe_allow_html=True)
+                row[2].markdown(str(zone_total))
+                row[3].markdown(f"**{final_score}**")
+                row[4].markdown(double_conf)
+                row[5].markdown(in_trade)
+                row[6].markdown(f"₹{price:,.2f}")
+                
+                # Chart button
+                if row[7].button("📈", key=f"top_pick_chart_{stock}_{list_name}_{stock_idx}"):
+                    st.session_state['current_chart'] = stock
+                    st.toast(f"Loading {stock} chart in Box 4...")
+
+    data_service.set_priority_symbols(list(visible_symbols))
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+# components/chart.py  
+#===================================================================================================================
+
+import streamlit as st
+import pandas as pd
+import plotly.graph_objects as go
+from livedata.live_data_provider import LiveDataProvider
+from livedata.live_market_data_services import LiveMarketDataService
+import time
+from functools import lru_cache
+
+
+class ChartComponent:
+    def __init__(self):
+        self.data_provider = LiveDataProvider()
+        self.data_service = LiveMarketDataService()
+        self.initialize_session_state()
+
+    def initialize_session_state(self):
+        """Initialize all required session state variables for the chart component."""
+        if 'current_chart' not in st.session_state:
+            st.session_state.current_chart = None
+        if 'chart_timeframe' not in st.session_state:
+            st.session_state.chart_timeframe = "1d"
+        if 'chart_interval' not in st.session_state:
+            st.session_state.chart_interval = "1h"
+        if 'chart_aspect_ratio' not in st.session_state:
+            st.session_state.chart_aspect_ratio = 1.0  # Default aspect ratio interval
+        if 'candle_colors' not in st.session_state:
+            st.session_state.candle_colors = {
+                'up': '#089981',  # Default green for up candles
+                'down': '#F23645'  # Default red for down candles
+            }
+        # Variables for data caching and refresh functionality
+        if 'chart_data' not in st.session_state:
+            st.session_state.chart_data = {}
+        if 'last_refresh' not in st.session_state:
+            st.session_state.last_refresh = 0
+
+    @lru_cache(maxsize=32)
+    def _get_historical_data_cached(self, symbol: str, timeframe: str):
+        """
+        Fetches historical data for a given symbol and timeframe with caching.
+        This method uses lru_cache to store results in memory.
+        """
+        # Map timeframes to appropriate start dates and Kite Connect intervals
+        timeframe_map = {
+            "1m": ("2024-05-20", "minute"),
+            "5m": ("2024-05-20", "5minute"),
+            "15m": ("2024-05-20", "15minute"),
+            "30m": ("2024-05-20", "30minute"),
+            "1h": ("2024-05-01", "hour"),
+            "1d": ("2024-01-01", "day"),
+            "5d": ("2024-01-01", "day"),
+            "1mo": ("2023-01-01", "day"),
+            "3mo": ("2023-01-01", "day"),
+            "6mo": ("2022-01-01", "day"),
+            "1y": ("2022-01-01", "day")
+        }
+
+        # Use "1d" as a fallback if the selected timeframe is not in the map
+        if timeframe not in timeframe_map:
+            timeframe = "1d"
+            
+        from_date, interval = timeframe_map[timeframe]
+        to_date = "2025-05-20" # Fixed end date for historical data
+
+        try:
+            # Call the actual data provider service
+            data = self.data_provider.get_historical_data(
+                symbol,
+                from_date=from_date,
+                to_date=to_date,
+                interval=interval
+            )
+            # Ensure the data is a pandas DataFrame
+            if isinstance(data, list):
+                data = pd.DataFrame(data)
+            return data
+        except Exception as e:
+            st.error(f"Error loading {timeframe} data for {symbol}: {str(e)}")
+            return None
+
+    def render_chart(self):
+        """Renders the chart analysis section of the Streamlit application."""
+        st.subheader("Chart")
+
+        # Chart customization controls within an expander
+        with st.expander("Chart Settings", expanded=False):
+            col1, col2, col3 = st.columns(3)
+
+            # Aspect ratio control slider
+            with col1:
+                st.session_state.chart_aspect_ratio = st.slider(
+                    "Aspect Ratio",
+                    min_value=0.1,
+                    max_value=3.0,
+                    value=st.session_state.chart_aspect_ratio,
+                    step=0.1,
+                    help="Adjust the width/height ratio of the chart"
+                )
+
+            # Up candle color picker
+            with col2:
+                st.session_state.candle_colors['up'] = st.color_picker(
+                    "Up Candle Color",
+                    value=st.session_state.candle_colors['up'],
+                    key='up_color'
+                )
+
+            # Down candle color picker
+            with col3:
+                st.session_state.candle_colors['down'] = st.color_picker(
+                    "Down Candle Color",
+                    value=st.session_state.candle_colors['down'],
+                    key='down_color'
+                )
+
+        # Search bar, timeframe controls, and refresh button
+        # Added an extra column for the refresh button
+        col1, col2, col3, col4 = st.columns([3, 1, 1, 0.5])
+        with col1:
+            search_query = st.text_input("Search Symbol",
+                                      value=st.session_state.get('current_chart', ''),
+                                      placeholder="Enter symbol name")
+        with col2:
+            # Updated timeframe options to match the second code's broader range
+            timeframe = st.selectbox("Timeframe",
+                                   ["1m", "5m", "15m", "30m", "1h", "1d", "5d", "1mo", "3mo", "6mo", "1y"],
+                                   index=5, # Default to "1d"
+                                   key="chart_timeframe")
+        with col4:
+            # Add some vertical space to align the button
+            st.write("")
+            st.write("")
+            # Refresh button logic
+            if st.button("Refresh"):
+                st.session_state.last_refresh = time.time()  # Update last refresh timestamp
+                st.session_state.chart_data.clear()  # Clear cached data in session state
+                self._get_historical_data_cached.cache_clear()  # Clear lru_cache
+                st.rerun()  # Rerun the Streamlit app to force data reload
+
+        # Determine which symbol to display based on search query or session state
+        symbol = search_query.upper() if search_query else st.session_state.get('current_chart')
+
+        if symbol:
+            st.session_state.current_chart = symbol  # Keep track of the currently displayed symbol
+            cache_key = f"{symbol}_{timeframe}"
+
+            # Determine if data needs to be reloaded (not in cache or older than 5 minutes)
+            should_reload = (cache_key not in st.session_state.chart_data or
+                             time.time() - st.session_state.last_refresh > 300) # 300 seconds = 5 minutes
+
+            historical_data = None
+            if should_reload:
+                with st.spinner(f"Loading {timeframe} data for {symbol}..."):
+                    historical_data = self._get_historical_data_cached(symbol, timeframe)
+                    if historical_data is not None:
+                        st.session_state.chart_data[cache_key] = historical_data
+                        st.session_state.last_refresh = time.time() # Update refresh time after successful load
+                    else:
+                        st.error("Failed to load data for the selected symbol and timeframe.")
+                        return # Exit if data loading failed
+            else:
+                historical_data = st.session_state.chart_data[cache_key]
+
+            # Check if historical data is available and not empty
+            if historical_data is not None and not historical_data.empty:
+                # Create candlestick chart with custom colors for lines and fills
+                fig = go.Figure(data=[go.Candlestick(
+                    x=historical_data['date'],
+                    open=historical_data['open'],
+                    high=historical_data['high'],
+                    low=historical_data['low'],
+                    close=historical_data['close'],
+                    increasing=dict(
+                        line=dict(color=st.session_state.candle_colors['up']),
+                        fillcolor=st.session_state.candle_colors['up'] # Use same color for fill
+                    ),
+                    decreasing=dict(
+                        line=dict(color=st.session_state.candle_colors['down']),
+                        fillcolor=st.session_state.candle_colors['down'] # Use same color for fill
+                    ),
+                    name=symbol
+                )])
+
+                # Update chart layout for better presentation and responsiveness
+                fig.update_layout(
+                    title=f"{symbol} - {timeframe} timeframe",
+                    xaxis_rangeslider_visible=False, # Hide the range slider at the bottom
+                    height=600, # Fixed height for consistency
+                    margin=dict(l=20, r=20, t=40, b=20), # Adjust margins
+                    autosize=True, # Allow chart to auto-size within its container
+                    # Apply aspect ratio to the y-axis for better visual control
+                    yaxis=dict(
+                        scaleanchor="x",
+                        scaleratio=st.session_state.chart_aspect_ratio
+                    )
+                )
+
+                # Display the Plotly chart, making it use the full container width
+                st.plotly_chart(fig, use_container_width=True)
+
+                # Show current price and other live data
+                current_data = self.data_provider.get_stock_data(symbol)
+                if current_data:
+                    st.write(f"""
+                    **Current Price:** ₹{current_data.get('price', 0):.2f}
+                    **Change:** {current_data.get('pct_change', 0):.2f}%
+                    **Zones:** {', '.join(current_data.get('zone_type', []))}
+                    """)
+            else:
+                st.warning(f"No historical data available for {symbol} for the selected timeframe.")
+
+        else:
+            st.info("Search for a symbol or click a chart button from other tabs to display a chart.")
+
+
+def render_chart():
+    """Instantiates and renders the ChartComponent."""
+    chart = ChartComponent()
+    chart.render_chart()
+
+
+# add this in main app if u wnat a chart 
+# render_chart()
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+#=================================================
+#=================================================
+# data/confirmation_list.json  
+#=================================================
+#=================================================
+#===================================================================================================================
+
+{
+  "demand_d2": [],
+  "demand_d1": [
+    {
+      "stock": "LUPIN",
+      "zone_display": "D1",
+      "zone_total": 10,
+      "rsi": 4,
+      "sr": 2,
+      "fib": 3,
+      "rr": 4.8,
+      "timestamp": "2025-05-27T00:20:29.513818"
+    }
+  ],
+  "supply_d2": [],
+  "supply_d1": []
+}
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+# data/sectors.json  
+#===================================================================================================================
+
+{
+    "NIFTY CONSR DURBL": "NIFTY CONSR DURBL",
+    "NIFTY PHARMA": "NIFTY PHARMA",
+    "NIFTY INFRA": "NIFTY INFRA",
+    "NIFTY IT": "NIFTY IT",
+    "NIFTY PSU BANK": "NIFTY PSU BANK",
+    "NIFTY AUTO": "NIFTY AUTO",
+    "NIFTY PSE": "NIFTY PSE",
+    "NIFTY FIN SERVICE": "NIFTY FIN SERVICE",  
+    "NIFTY FMCG": "NIFTY FMCG",
+    "NIFTY ENERGY": "NIFTY ENERGY",
+    "NIFTY METAL": "NIFTY METAL",
+    "NIFTY PVT BANK": "NIFTY PVT BANK", 
+    "NIFTY REALTY": "NIFTY REALTY"
+}
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+# data/settings.py    
+#===================================================================================================================
+
+
+import streamlit as st
+from dotenv import load_dotenv
+import os
+
+# Try reading from Streamlit secrets first
+if st.secrets:
+    API_KEY = st.secrets["kite"]["api_key"]
+    API_SECRET = st.secrets["kite"]["api_secret"]
+    ACCESS_TOKEN = st.secrets["kite"]["access_token"]
+else:
+    # Fallback to local .env file
+    load_dotenv()
+    API_KEY = os.getenv("API_KEY")
+    API_SECRET = os.getenv("API_SECRET")
+    ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
+    
+
+
+
+
+
+
+
+
+#===================================================================================================================
+# data/stock_map.json  
+#===================================================================================================================
+
+
+{
+  "NIFTY CONSR DURBL": ["BLUESTARCO", "WHIRLPOOL", "HAVELLS", "DIXON", "RAJESHEXPO", "TITAN", "VGUARD", "VOLTAS", "BATAINDIA", "CROMPTON", "CERA", "KAJARIACER", "KALYANKJIL", "ORIENTELEC", "BAJAJELEC"],
+  "NIFTY PHARMA": ["SUNPHARMA", "GLENMARK", "AUROPHARMA", "LUPIN", "ZYDUSLIFE", "ALKEM", "CIPLA", "TORNTPHARM", "IPCALAB", "DIVISLAB", "DRREDDY", "LALPATHLAB", "APOLLOHOSP"],
+  "NIFTY INFRA": ["GMRP&UI", "BHEL", "BEL", "RECLTD", "PFC", "NTPC", "COALINDIA", "HAL", "CONCOR", "IRCTC", "POWERGRID", "NMDC"],
+  "NIFTY IT": ["WIPRO", "BSOFT", "TECHM", "MPHASIS", "HCLTECH", "INFY", "TCS", "LTTS", "LTIM", "COFORGE", "PERSISTENT"],
+  "NIFTY PSU BANK": ["BANKBARODA", "PNB", "CANBK", "FEDERALBNK", "SBIN", "UNIONBANK", "CENTRALBK", "BANKINDIA", "MAHABANK", "BANDHANBNK"],
+  "NIFTY AUTO": ["TATAMOTORS", "ASHOKLEY", "M&M", "APOLLOTYRE", "TVSMOTOR", "EXIDEIND", "MOTHERSON", "BALKRISIND", "BAJAJ-AUTO", "EICHERMOT"],
+  "NIFTY PSE": ["NTPC", "COALINDIA", "HAL", "CONCOR", "BPCL", "ONGC", "IOC", "OIL", "NHPC"],
+  "NIFTY FIN SERVICE": ["CANFINHOME", "LICHSGFIN", "LTF", "IEX", "MANAPPURAM", "MUTHOOTFIN", "CHOLAFIN", "COROMANDEL"],
+  "NIFTY FMCG": ["ITC", "HINDUNILVR", "BRITANNIA", "TATACONSUM", "GODREJCP", "VBL", "DABUR", "MARICO"],
+  "NIFTY ENERGY": ["GAIL", "HINDPETRO", "BPCL", "ONGC", "IOC", "PETRONET", "MGL"],
+  "NIFTY METAL": ["ADANIENT", "SAIL", "JINDALSTEL", "VEDL", "HINDALCO", "JSWSTEEL", "TATASTEEL"],
+  "NIFTY PVT BANK": ["AXISBANK", "ICICIBANK", "HDFCBANK", "KOTAKBANK", "INDUSINDBK", "IDFCFIRSTB"],
+  "NIFTY REALTY": ["DLF"]
+}
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+# data/stocks_token_map.py    
+#===================================================================================================================
+
+STOCK_TOKEN_MAP = {
+    # Consumer Durables
+    "BLUESTARCO": 2127617, "WHIRLPOOL": 4610817, "HAVELLS": 2513665, "DIXON": 5552641, "RAJESHEXPO": 1894657, "TITAN": 897537, "VGUARD": 3932673, "VOLTAS": 951809, "BATAINDIA": 94977, "CROMPTON": 4376065, "CERA": 3849985, "KAJARIACER": 462849, "KALYANKJIL": 756481, "ORIENTELEC": 760833, "BAJAJELEC": 3848705,
+    # Pharma
+    "SUNPHARMA": 857857, "GLENMARK": 1895937, "AUROPHARMA": 70401, "LUPIN": 2672641, "ZYDUSLIFE": 2029825, "ALKEM": 2995969, "CIPLA": 177665, "TORNTPHARM": 900609, "IPCALAB": 418049, "DIVISLAB": 2800641, "DRREDDY": 225537, "LALPATHLAB": 2983425, "APOLLOHOSP": 40193,
+    # Infrastructure
+    "GMRP&UI": 2183425, "BHEL": 112129, "BEL": 98049, "RECLTD": 3930881, "PFC": 3660545, "NTPC": 2977281, "COALINDIA": 5215745, "HAL": 589569, "CONCOR": 1215745, "IRCTC": 3484417, "POWERGRID": 3834113, "NMDC": 3924993,
+    # IT
+    "WIPRO": 969473, "BSOFT": 1790465, "TECHM": 3465729, "MPHASIS": 1152769, "HCLTECH": 1850625, "INFY": 408065, "TCS": 2953217, "LTTS": 4752385, "LTIM": 4561409, "COFORGE": 2955009, "PERSISTENT": 4701441,
+    # PSU BANK
+    "BANKBARODA": 1195009, "PNB": 2730497, "CANBK": 2763265, "FEDERALBNK": 261889, "SBIN": 779521, "UNIONBANK": 2752769, "CENTRALBK": 3812865, "BANKINDIA": 1214721, "MAHABANK": 2912513, "BANDHANBNK": 579329,
+    # AUTO
+    "TATAMOTORS": 884737, "ASHOKLEY": 54273, "M&M": 519937, "APOLLOTYRE": 41729, "TVSMOTOR": 2170625, "EXIDEIND": 173057, "MOTHERSON": 1076225, "BALKRISIND": 85761, "BAJAJ-AUTO": 4267265, "EICHERMOT": 232961,
+    # PSE
+    "NTPC": 2977281, "COALINDIA": 5215745, "HAL": 589569, "CONCOR": 1215745, "BPCL": 134657, "ONGC": 633601, "IOC": 415745, "OIL": 4464129, "NHPC": 4454401,
+    # FIN SERVICE
+    "CANFINHOME": 149249, "LICHSGFIN": 511233, "LTF": 6386689, "IEX": 56321, "MANAPPURAM": 4879617, "MUTHOOTFIN": 6054401, "CHOLAFIN": 175361, "COROMANDEL": 189185,
+    # FMCG
+    "ITC": 424961, "HINDUNILVR": 356865, "BRITANNIA": 140033, "TATACONSUM": 878593, "GODREJCP": 2585345, "VBL": 4843777, "DABUR": 197633, "MARICO": 1041153,
+    # ENERGY
+    "GAIL": 1207553, "HINDPETRO": 359937, "BPCL": 134657, "ONGC": 633601, "IOC": 415745, "PETRONET": 2905857, "MGL": 4488705,
+    # METAL
+    "ADANIENT": 6401, "SAIL": 758529, "JINDALSTEL": 1723649, "VEDL": 784129, "HINDALCO": 348929, "JSWSTEEL": 3001089, "TATASTEEL": 895745, 
+    # PVT BANK
+    "AXISBANK": 1510401, "ICICIBANK": 1270529, "HDFCBANK": 341249, "KOTAKBANK": 492033, "INDUSINDBK": 1346049, "IDFCFIRSTB": 2863105,
+    # REALTY
+    "DLF": 3771393
+}
+
+STOCK_NAME_MAP = {
+    # Consumer Durables
+    "BLUESTARCO": "BLUE STAR", "WHIRLPOOL": "WHIRLPOOL OF INDIA", "HAVELLS": "HAVELLS INDIA", "DIXON": "DIXON TECHNO (INDIA)", "RAJESHEXPO": "RAJESH EXPORTS", "TITAN": "TITAN COMPANY", "VGUARD": "V-GUARD IND", "VOLTAS": "VOLTAS", "BATAINDIA": "BATA INDIA", "CROMPTON": "CROMPT GREA CON ELEC", "CERA": "CERA SANITARYWARE", "KAJARIACER": "KAJARIA CERAMICS", "KALYANKJIL": "KALYAN JEWELLERS IND", "ORIENTELEC": "ORIENT ELECTRIC", "BAJAJELEC": "BAJAJ ELECT.LTD",
+    # Pharma
+    "SUNPHARMA": "SUN PHARMACEUTICAL IND L", "GLENMARK": "GLENMARK PHARMACEUTICALS", "AUROPHARMA": "AUROBINDO PHARMA", "LUPIN": "LUPIN", "ZYDUSLIFE": "ZYDUS LIFESCIENCES", "ALKEM": "ALKEM LABORATORIES", "CIPLA": "CIPLA", "TORNTPHARM": "TORRENT PHARMACEUTICALS L", "IPCALAB": "IPCA LABORATORIES", "DIVISLAB": "DIVI S LABORATORIES", "DRREDDY": "DR. REDDY S LABORATORIES", "LALPATHLAB": "DR. LAL PATH LABS", "APOLLOHOSP": "APOLLO HOSPITALS ENTER. L",
+    # Infrastructure
+    "GMRP&UI": "GMR POW AND URBAN INFRA L", "BHEL": "BHEL", "BEL": "BHARAT ELECTRONICS", "RECLTD": "REC", "PFC": "POWER FIN CORP", "NTPC": "NTPC", "COALINDIA": "COAL INDIA", "HAL": "HINDUSTAN AERONAUTICS", "CONCOR": "CONTAINER CORP OF IND", "IRCTC": "INDIAN RAIL TOUR CORP", "POWERGRID": "POWER GRID CORP.", "NMDC": "NMDC",
+    # IT
+    "WIPRO": "WIPRO", "BSOFT": "BIRLASOFT", "TECHM": "TECH MAHINDRA", "MPHASIS": "MPHASIS", "HCLTECH": "HCL TECHNOLOGIES", "INFY": "INFOSYS", "TCS": "TATA CONSULTANCY SERV LT", "LTTS": "L&T TECHNOLOGY SER.", "LTIM": "LTIMINDTREE", "COFORGE": "COFORGE", "PERSISTENT": "PERSISTENT SYSTEMS",
+    # PSU BANK
+    "BANKBARODA": "BANK OF BARODA", "PNB": "PUNJAB NATIONAL BANK", "CANBK": "CANARA BANK", "FEDERALBNK": "FEDERAL BANK", "SBIN": "STATE BANK OF INDIA", "UNIONBANK": "UNION BANK OF INDIA", "CENTRALBK": "CENTRAL BANK OF INDIA", "BANKINDIA": "BANK OF INDIA", "MAHABANK": "BANK OF MAHARASHTRA", "BANDHANBNK": "BANDHAN BANK",
+    # AUTO
+    "TATAMOTORS": "TATA MOTORS", "ASHOKLEY": "ASHOK LEYLAND", "M&M": "MAHINDRA & MAHINDRA", "APOLLOTYRE": "APOLLO TYRES", "TVSMOTOR": "TVS MOTOR COMPANY", "EXIDEIND": "EXIDE INDUSTRIES", "MOTHERSON": "SAMVRDHNA MTHRSN INTL", "BALKRISIND": "BALKRISHNA IND.", "BAJAJ-AUTO": "BAJAJ AUTO", "EICHERMOT": "EICHER MOTORS",
+    # PSE
+    "NTPC": "NTPC", "COALINDIA": "COAL INDIA", "HAL": "HINDUSTAN AERONAUTICS", "CONCOR": "CONTAINER CORP OF IND", "BPCL": "BHARAT PETROLEUM CORP  LT", "ONGC": "OIL AND NATURAL GAS CORP.", "IOC": "INDIAN OIL CORP", "OIL": "OIL INDIA", "NHPC": "NHPC",
+    # FIN SERVICE
+    "CANFINHOME": "CAN FIN HOMES", "LICHSGFIN": "LIC HOUSING FINANCE", "LTF": "L&T FINANCE", "IEX": "INDIAN ENERGY EXC", "MANAPPURAM": "MANAPPURAM FINANCE", "MUTHOOTFIN": "MUTHOOT FINANCE", "CHOLAFIN": "CHOLAMANDALAM IN & FIN CO", "COROMANDEL": "COROMANDEL INTERNTL.",
+    # FMCG
+    "ITC": "ITC", "HINDUNILVR": "HINDUSTAN UNILEVER", "BRITANNIA": "BRITANNIA INDUSTRIES", "TATACONSUM": "TATA CONSUMER PRODUCT", "GODREJCP": "GODREJ CONSUMER PRODUCTS", "VBL": "VARUN BEVERAGES", "DABUR": "DABUR INDIA", "MARICO": "MARICO",
+    # ENERGY
+    "GAIL": "GAIL (INDIA)", "HINDPETRO": "HINDUSTAN PETROLEUM CORP", "BPCL": "BHARAT PETROLEUM CORP  LT", "ONGC": "OIL AND NATURAL GAS CORP.", "IOC": "INDIAN OIL CORP", "PETRONET": "PETRONET LNG", "MGL": "MAHANAGAR GAS",
+    # METAL
+    "ADANIENT": "ADANI ENTERPRISES", "SAIL": "STEEL AUTHORITY OF INDIA", "JINDALSTEL": "JINDAL STEEL & POWER", "VEDL": "VEDANTA", "HINDALCO": "HINDALCO  INDUSTRIES", "JSWSTEEL": "JSW STEEL", "TATASTEEL": "TATA STEEL", 
+    # PVT BANK
+    "AXISBANK": "AXIS BANK", "ICICIBANK": "ICICI BANK", "HDFCBANK": "HDFC BANK", "KOTAKBANK": "KOTAK MAHINDRA BANK", "INDUSINDBK": "INDUSIND BANK", "IDFCFIRSTB": "IDFC FIRST BANK",
+    # REALTY
+    "DLF": "DLF"
+}
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+# data/top_picks.json   
+#===================================================================================================================
+
+{
+  "demand_d2": [],
+  "demand_d1": [
+    {
+      "stock": "LUPIN",
+      "zone_display": "D1",
+      "zone_total": 10,
+      "final_score": 19,
+      "rr_score": 4.8,
+      "in_trade": "No",
+      "double_conf": "yes",
+      "timestamp": "2025-05-27T00:20:47.025152"
+    }
+  ],
+  "supply_d2": [],
+  "supply_d1": []
+}
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+# data/zone_definitions.json   
+#===================================================================================================================
+
+# Examples
+
+{
+  "sectors": {
+    "NIFTY PHARMA": [
+      {
+        "price_low": 21300,
+        "price_high": 21600,
+        "direction": "demand",
+        "type": "W",
+        "strength": 7,
+        "base": 4,
+        "timestamp": "2025-05-23T17:53:07.956512"
+      },
+      {
+        "price_low": 21400,
+        "price_high": 21500,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 6,
+        "base": 4,
+        "timestamp": "2025-05-23T17:53:48.135704"
+      }
+    ],
+    "NIFTY AUTO": [
+      {
+        "price_low": 23000,
+        "price_high": 24000,
+        "direction": "supply",
+        "type": "M",
+        "strength": 6,
+        "base": 5,
+        "timestamp": "2025-05-23T18:40:28.785332"
+      }
+    ]
+  },
+  "stocks": {
+    "SUNPHARMA": [
+      {
+        "price_low": 1600,
+        "price_high": 1700,
+        "direction": "demand",
+        "type": "W",
+        "strength": 6,
+        "base": 3,
+        "timestamp": "2025-05-23T17:54:42.460613"
+      },
+      {
+        "price_low": 1660,
+        "price_high": 1700,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 5,
+        "base": 3,
+        "timestamp": "2025-05-23T17:55:14.362615"
+      }
+    ],
+    "BANKBARODA": [
+      {
+        "price_low": 220,
+        "price_high": 250,
+        "direction": "demand",
+        "type": "M",
+        "strength": 5,
+        "base": 4,
+        "timestamp": "2025-05-23T18:38:45.963330"
+      }
+    ],
+    "CANBK": [
+      {
+        "price_low": 100,
+        "price_high": 120,
+        "direction": "demand",
+        "type": "M",
+        "strength": 6,
+        "base": 4,
+        "timestamp": "2025-05-23T18:39:14.798094"
+      },
+      {
+        "price_low": 105,
+        "price_high": 110,
+        "direction": "demand",
+        "type": "W",
+        "strength": 7,
+        "base": 3,
+        "timestamp": "2025-05-23T18:39:33.864036"
+      }
+    ],
+    "TATAMOTORS": [
+      {
+        "price_low": 700,
+        "price_high": 750,
+        "direction": "supply",
+        "type": "M",
+        "strength": 5,
+        "base": 8,
+        "timestamp": "2025-05-23T18:41:14.008928"
+      },
+      {
+        "price_low": 710,
+        "price_high": 730,
+        "direction": "supply",
+        "type": "W",
+        "strength": 6,
+        "base": 8,
+        "timestamp": "2025-05-23T18:41:36.963561"
+      }
+    ]
+  }
+}
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+#=================================================
+#=================================================
+# livedata/caching.py  
+#=================================================
+#=================================================
+#===================================================================================================================
+
+import hashlib
+import pickle
+import os
+from datetime import datetime, timedelta
+
+class DataCache:
+    def __init__(self, cache_dir=".cache"):
+        self.cache_dir = cache_dir
+        os.makedirs(cache_dir, exist_ok=True)
+    
+    def _get_cache_path(self, key):
+        # Create a hash of the key for the filename
+        key_hash = hashlib.md5(key.encode('utf-8')).hexdigest()
+        return os.path.join(self.cache_dir, f"{key_hash}.pkl")
+    
+    def get(self, key, max_age_minutes=60):
+        path = self._get_cache_path(key)
+        if not os.path.exists(path):
+            return None
+        
+        file_age = datetime.now() - datetime.fromtimestamp(os.path.getmtime(path))
+        if file_age > timedelta(minutes=max_age_minutes):
+            return None
+            
+        with open(path, 'rb') as f:
+            return pickle.load(f)
+    
+    def set(self, key, value):
+        path = self._get_cache_path(key)
+        with open(path, 'wb') as f:
+            pickle.dump(value, f)
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+# livedata/data_loader.py    
+#===================================================================================================================
+
+from .live_data_provider import LiveDataProvider
+import pandas as pd
+# from .mock_data_provider import MockDataProvider
+from data.settings import USE_LIVE_DATA
+from utils.decorators import handle_data_errors
+
+class DataLoader:
+    def __init__(self):
+        if USE_LIVE_DATA:
+            self.provider = LiveDataProvider()
+    
+    @handle_data_errors
+    def load_sectors(self):
+        """Load sector list"""
+        return self.provider.get_sectors()
+    
+    @handle_data_errors
+    def load_stock_map(self):
+        """Load sector to stocks mapping"""
+        return self.provider.get_stock_map()
+    
+    @handle_data_errors
+    def get_bulk_data(self, symbols):
+        """Get data for multiple symbols with validation"""
+        # First validate symbols
+        valid_symbols = [s for s in symbols if self._is_valid_symbol(s)]
+        data = self.provider.get_bulk_data(valid_symbols)
+        
+        # Ensure all requested symbols have data
+        for symbol in symbols:
+            if symbol not in data:
+                data[symbol] = {
+                    "price": 0,
+                    "pct_change": 0,
+                    "zone_type": [],
+                    "zone_direction": [],
+                    "strength": 0,
+                    "base": 0,
+                    "is_sector": False
+                }
+        return data     
+    
+    def _is_valid_symbol(self, symbol):
+        """Check if symbol is valid for the provider"""
+        return True
+
+    def get_stock_data(self, symbol):
+        """Get data for single symbol"""
+        return self.provider.get_stock_data(symbol)
+    
+    def get_price(self, symbol):
+        """Get current price for symbol"""
+        return self.provider.get_price(symbol)
+    
+    def get_historical_data(self, instrument_token, interval="day", from_date="2024-01-01", to_date="2024-05-20"):
+        data = self.kite.historical_data(
+            instrument_token=instrument_token,
+            interval=interval,
+            from_date=from_date,
+            to_date=to_date
+        )
+        return pd.DataFrame(data)
+    
+    def get_instrument_token(symbol, instruments_df):
+        row = instruments_df[instruments_df["tradingsymbol"] == symbol]
+        if not row.empty:
+            return int(row.iloc[0]["instrument_token"])
+        else:
+            return None
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+# livedata/data_normalizer.py    
+#===================================================================================================================
+
+from datetime import datetime
+from typing import Dict, Any, List
+
+class DataNormalizer:
+    @staticmethod
+    def normalize_tick(tick_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Normalize live tick data to our standard format"""
+        return {
+            'price': tick_data.get('last_price', 0),
+            'pct_change': tick_data.get('change', 0),
+            'volume': tick_data.get('volume', 0),
+            'ohlc': tick_data.get('ohlc', {}),
+            'timestamp': datetime.now().isoformat(),
+            # Add other normalized fields as needed
+        }
+
+    @staticmethod
+    def normalize_historical(candles: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Normalize historical candle data"""
+        return [
+            {
+                'date': candle['date'],
+                'open': candle['open'],
+                'high': candle['high'],
+                'low': candle['low'],
+                'close': candle['close'],
+                'volume': candle['volume']
+            }
+            for candle in candles
+        ]
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+# livedata/data_provider.py    
+#===================================================================================================================
+
+from abc import ABC, abstractmethod
+from typing import Dict, Any, List, Optional
+from datetime import datetime
+
+class DataProvider(ABC):
+    @abstractmethod
+    def get_sectors(self) -> List[str]:
+        """Return list of sector names"""
+        pass
+    
+    @abstractmethod
+    def get_stock_map(self) -> Dict[str, List[str]]:
+        """Return mapping of sectors to their stocks"""
+        pass
+    
+    @abstractmethod
+    def get_stock_data(self, symbol: str) -> Dict[str, Any]:
+        """Return complete stock data including zones, indicators"""
+        pass
+    
+    @abstractmethod
+    def get_bulk_data(self, symbols: List[str]) -> Dict[str, Dict[str, Any]]:
+        """Return data for multiple stocks"""
+        pass
+    
+    @abstractmethod
+    def get_price(self, symbol: str) -> float:
+        """Return current price"""
+        pass
+    
+    @abstractmethod
+    def get_historical_data(self, symbol: str, 
+                          from_date: datetime, 
+                          to_date: datetime,
+                          interval: str) -> List[Dict[str, Any]]:
+        """Return historical candle data"""
+        pass
+    
+    @abstractmethod
+    def subscribe_to_ticks(self, symbols: List[str], callback):
+        """Subscribe to live updates"""
+        pass
+    
+    @abstractmethod
+    def get_instrument_details(self, symbol: str) -> Dict[str, Any]:
+        """Get instrument metadata (token, lot size, etc.)"""
+        pass
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+# livedata/live_data_provider.py    
+#===================================================================================================================
+
+import time
+from datetime import datetime, timedelta
+from typing import Dict, List, Any
+from kiteconnect import KiteConnect
+import logging
+from data.settings import API_KEY, ACCESS_TOKEN
+import json
+from pathlib import Path
+
+SECTOR_INDEX_MAP = {
+    "NIFTY CONSR DURBL": "NIFTY CONSR DURBL",
+    "NIFTY PHARMA": "NIFTY PHARMA",
+    "NIFTY INFRA": "NIFTY INFRA",
+    "NIFTY IT": "NIFTY IT",
+    "NIFTY PSU BANK": "NIFTY PSU BANK",
+    "NIFTY AUTO": "NIFTY AUTO",
+    "NIFTY PSE": "NIFTY PSE",
+    "NIFTY FIN SERVICE": "NIFTY FIN SERVICE",  
+    "NIFTY FMCG": "NIFTY FMCG",
+    "NIFTY ENERGY": "NIFTY ENERGY",
+    "NIFTY METAL": "NIFTY METAL",
+    "NIFTY PVT BANK": "NIFTY PVT BANK", 
+    "NIFTY REALTY": "NIFTY REALTY"
+}
+
+SECTOR_TOKEN_MAP = {
+    "NIFTY CONSR DURBL": 288777,
+    "NIFTY PHARMA": 29919,
+    "NIFTY INFRA": 29915,  
+    "NIFTY IT": 29912,   
+    "NIFTY PSU BANK": 29921, 
+    "NIFTY AUTO": 29923,    
+    "NIFTY PSE": 29920,     
+    "NIFTY FIN SERVICE": 257801, 
+    "NIFTY FMCG": 29917,   
+    "NIFTY ENERGY": 29916,  
+    "NIFTY METAL": 29924,   
+    "NIFTY PVT BANK": 29951, 
+    "NIFTY REALTY": 29914,    
+    "NIFTY BANK": 26000, 
+    "NIFTY 50": 256265
+}
+
+STOCK_TOKEN_MAP = {
+    # Consumer Durables
+    "BLUESTARCO": 2127617, "WHIRLPOOL": 4610817, "HAVELLS": 2513665, "DIXON": 5552641, 
+    "RAJESHEXPO": 1894657, "TITAN": 897537, "VGUARD": 3932673, "VOLTAS": 951809, 
+    "BATAINDIA": 94977, "CROMPTON": 4376065, "CERA": 3849985, "KAJARIACER": 462849, 
+    "KALYANKJIL": 756481, "ORIENTELEC": 760833, "BAJAJELEC": 3848705,
+    # Pharma
+    "SUNPHARMA": 857857, "GLENMARK": 1895937, "AUROPHARMA": 70401, "LUPIN": 2672641, 
+    "ZYDUSLIFE": 2029825, "ALKEM": 2995969, "CIPLA": 177665, "TORNTPHARM": 900609, 
+    "IPCALAB": 418049, "DIVISLAB": 2800641, "DRREDDY": 225537, "LALPATHLAB": 2983425, 
+    "APOLLOHOSP": 40193,
+    # Infrastructure
+    "GMRP&UI": 2183425, "BHEL": 112129, "BEL": 98049, "RECLTD": 3930881, 
+    "PFC": 3660545, "NTPC": 2977281, "COALINDIA": 5215745, "HAL": 589569, 
+    "CONCOR": 1215745, "IRCTC": 3484417, "POWERGRID": 3834113, "NMDC": 3924993,
+    # IT
+    "WIPRO": 969473, "BSOFT": 1790465, "TECHM": 3465729, "MPHASIS": 1152769, 
+    "HCLTECH": 1850625, "INFY": 408065, "TCS": 2953217, "LTTS": 4752385, 
+    "LTIM": 4561409, "COFORGE": 2955009, "PERSISTENT": 4701441,
+    # PSU Bank
+    "BANKBARODA": 1195009, "PNB": 2730497, "CANBK": 2763265, "FEDERALBNK": 261889, 
+    "SBIN": 779521, "UNIONBANK": 2752769, "CENTRALBK": 3812865, "BANKINDIA": 1214721, 
+    "MAHABANK": 2912513, "BANDHANBNK": 579329,
+    # AUTO
+    "TATAMOTORS": 884737, "ASHOKLEY": 54273, "M&M": 519937, "APOLLOTYRE": 41729, 
+    "TVSMOTOR": 2170625, "EXIDEIND": 173057, "MOTHERSON": 1076225, "BALKRISIND": 85761, 
+    "BAJAJ-AUTO": 4267265, "EICHERMOT": 232961,
+    # PSE
+    "NTPC": 2977281, "COALINDIA": 5215745, "HAL": 589569, "CONCOR": 1215745, 
+    "BPCL": 134657, "ONGC": 633601, "IOC": 415745, "OIL": 4464129, "NHPC": 4454401,
+    # FIN SERVICE
+    "CANFINHOME": 149249, "LICHSGFIN": 511233, "LTF": 6386689, "IEX": 56321, 
+    "MANAPPURAM": 4879617, "MUTHOOTFIN": 6054401, "CHOLAFIN": 175361, "COROMANDEL": 189185,
+    # FMCG
+    "ITC": 424961, "HINDUNILVR": 356865, "BRITANNIA": 140033, "TATACONSUM": 878593, 
+    "GODREJCP": 2585345, "VBL": 4843777, "DABUR": 197633, "MARICO": 1041153,
+    # ENERGY
+    "GAIL": 1207553, "HINDPETRO": 359937, "BPCL": 134657, "ONGC": 633601, 
+    "IOC": 415745, "PETRONET": 2905857, "MGL": 4488705,
+    # METAL
+    "ADANIENT": 6401, "SAIL": 758529, "JINDALSTEL": 1723649, "VEDL": 784129, 
+    "HINDALCO": 348929, "JSWSTEEL": 3001089, "TATASTEEL": 895745, 
+    # PVT BANK
+    "AXISBANK": 1510401, "ICICIBANK": 1270529, "HDFCBANK": 341249, 
+    "KOTAKBANK": 492033, "INDUSINDBK": 1346049, "IDFCFIRSTB": 2863105,
+    # REALTY
+    "DLF": 3771393,
+}
+
+class LiveDataProvider:
+    def __init__(self):
+        self.last_request_time = 0
+        self.request_count = 0
+        self.historical_request_times = []
+        
+        self.kite = KiteConnect(api_key=API_KEY)
+        self.kite.set_access_token(ACCESS_TOKEN)
+        self.instruments = self._load_instruments()
+        self.sector_instruments = self._load_sector_instruments()
+        self.sector_tokens = self._load_sector_tokens()
+        self.stock_tokens = self._load_stock_tokens()
+        logging.basicConfig(level=logging.INFO)
+
+    def _load_sector_tokens(self) -> Dict[str, Dict[str, Any]]:
+        """Load sector tokens from sectors.json"""
+        sectors_path = Path(__file__).parent.parent / "data" / "sectors.json"
+        with open(sectors_path) as f:
+            return json.load(f)
+    
+    def _load_stock_tokens(self):
+        """Load all NSE instrument tokens once at startup"""
+        self._rate_limit()
+        all_instruments = self.kite.instruments("NSE")
+        
+        stock_tokens = {}
+        for inst in all_instruments:
+            if inst['instrument_type'] == 'EQ':
+                stock_tokens[inst['tradingsymbol']] = inst['instrument_token']
+        
+        return stock_tokens
+
+    def _load_sector_instruments(self):
+        """Load sector index instruments with proper formatting"""
+        return {
+            symbol: {
+                "instrument_token": token,
+                "tradingsymbol": symbol,
+                "exchange": "NSE"
+            }
+            for symbol, token in SECTOR_TOKEN_MAP.items()
+        }
+    
+    def _get_instrument_key(self, symbol):
+        """Get the proper instrument key for the symbol with robust handling"""
+        symbol_mappings = {
+            # [Previous symbol mappings remain the same...]
+        }
+        return f"NSE:{symbol}"
+    
+    def _fetch_sector_data(self, symbol):
+        """Special handling for sector indices"""
+        try:
+            mapped_symbol = SECTOR_INDEX_MAP.get(symbol)
+            if not mapped_symbol:
+                return None
+                
+            instrument_key = f"NSE:{mapped_symbol}"
+            self._rate_limit()
+            ltp_data = self.kite.ltp([instrument_key])
+            
+            if instrument_key not in ltp_data:
+                logging.warning(f"No data returned for sector {symbol} ({instrument_key})")
+                return None
+                
+            ltp = ltp_data[instrument_key]
+            return {
+                "price": ltp.get('last_price', 0),
+                "pct_change": ltp.get('net_change', 0),
+                "zone_type": [],
+                "zone_direction": [],
+                "strength": 0,
+                "base": 0,
+                "is_sector": True
+            }
+        except Exception as e:
+            logging.error(f"Error fetching sector data for {symbol}: {str(e)}")
+            return None
+        
+    
+    def _rate_limit(self):
+        """Enforce rate limiting of 3 requests per second"""
+        current_time = time.time()
+        elapsed = current_time - self.last_request_time
+        if elapsed < 0.34:  # Slightly more than 1/3 second to stay under 3 req/sec
+            time.sleep(0.34 - elapsed)
+        self.last_request_time = time.time()
+
+    def _historical_rate_limit(self):
+        """Enforce historical data rate limiting (5 per minute)"""
+        now = time.time()
+        # Remove requests older than 1 minute
+        self.historical_request_times = [
+            t for t in self.historical_request_times 
+            if now - t < 60
+        ]
+        if len(self.historical_request_times) >= 5:
+            sleep_time = 60 - (now - self.historical_request_times[0])
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+        
+        self.historical_request_times.append(time.time())
+
+    def _load_instruments(self) -> Dict[str, Any]:
+        """Load all NSE instruments once per session"""
+        self._rate_limit()
+        instruments = self.kite.instruments("NSE")
+        return {inst['tradingsymbol']: inst for inst in instruments}
+    
+    def get_sectors(self) -> List[str]:
+        return list(self.sector_tokens.keys())
+    
+    def get_stock_map(self) -> Dict[str, List[str]]:
+        stock_map_path = Path(__file__).parent.parent / "data" / "stock_map.json"
+        with open(stock_map_path) as f:
+            return json.load(f)
+    
+    def _get_sector_data(self, symbol: str) -> Dict[str, Any]:
+        """Special handling for sector/index data"""
+        try:
+            if symbol in self.sector_tokens:
+                token = self.sector_tokens[symbol].get("token", "256265")
+                self._rate_limit()
+                ltp = self.kite.ltp([f"NSE:{token}"])[f"NSE:{token}"]
+                
+                return {
+                    "price": ltp.get('last_price', 0),
+                    "pct_change": ltp.get('net_change', 0),
+                    "zone_type": [],
+                    "zone_direction": [],
+                    "strength": 0,
+                    "base": 0,
+                    "is_sector": True
+                }
+            return {}
+        except Exception as e:
+            logging.error(f"Error fetching sector data for {symbol}: {e}")
+            return {}
+
+    def get_stock_data(self, symbol: str) -> Dict[str, Any]:
+        try:
+            if symbol in SECTOR_INDEX_MAP:
+                sector_data = self._fetch_sector_data(symbol)
+                if sector_data:
+                    return sector_data
+            
+            instrument_key = self._get_instrument_key(symbol)
+            self._rate_limit()
+            ltp_data = self.kite.ltp([instrument_key])
+            
+            if instrument_key not in ltp_data:
+                logging.warning(f"No data returned for {symbol} ({instrument_key})")
+                return self._create_default_data()
+                
+            ltp = ltp_data[instrument_key]
+            
+            if symbol in SECTOR_INDEX_MAP:
+                return {
+                    "price": ltp.get('last_price', 0),
+                    "pct_change": ltp.get('net_change', 0),
+                    "zone_type": [],
+                    "zone_direction": [],
+                    "strength": 0,
+                    "base": 0,
+                    "is_sector": True
+                }
+            
+            historical_data = self.get_historical_data(
+                symbol,
+                datetime.now() - timedelta(days=30),
+                datetime.now(),
+                "day"
+            )
+            
+            close_prices = [candle['close'] for candle in historical_data]
+            current_price = ltp['last_price']
+            pct_change = ((current_price - close_prices[-2]) / close_prices[-2]) * 100 if len(close_prices) > 1 else 0
+            
+            return {
+                "price": current_price,
+                "pct_change": round(pct_change, 2),
+                "zone_type": [],
+                "zone_direction": [],
+                "strength": 0,
+                "base": 0,
+                "is_sector": False
+            }
+        except Exception as e:
+            logging.error(f"Error fetching data for {symbol}: {str(e)}")
+            return self._create_default_data()
+
+    def get_bulk_data(self, symbols: List[str]) -> Dict[str, Dict[str, Any]]:
+        results = {}
+        stock_symbols = []
+        sector_symbols = []
+        
+        for symbol in symbols:
+            if symbol in SECTOR_INDEX_MAP:
+                sector_symbols.append(symbol)
+            else:
+                stock_symbols.append(symbol)
+        
+        for sector in sector_symbols:
+            try:
+                sector_data = self._fetch_sector_data(sector)
+                results[sector] = sector_data if sector_data else self._create_default_data()
+            except Exception as e:
+                logging.error(f"Error processing sector {sector}: {str(e)}")
+                results[sector] = self._create_default_data()
+        
+        batch_size = 50
+        for i in range(0, len(stock_symbols), batch_size):
+            batch = stock_symbols[i:i + batch_size]
+            instrument_keys = [self._get_instrument_key(s) for s in batch]
+            
+            try:
+                self._rate_limit()
+                ltp_data = self.kite.ltp(instrument_keys)
+                
+                for symbol, instrument_key in zip(batch, instrument_keys):
+                    if instrument_key in ltp_data:
+                        ltp = ltp_data[instrument_key]
+                        results[symbol] = {
+                            "price": ltp.get('last_price', 0),
+                            "pct_change": ltp.get('net_change', 0),
+                            "zone_type": [],
+                            "zone_direction": [],
+                            "strength": 0,
+                            "base": 0,
+                            "is_sector": False
+                        }
+                    else:
+                        logging.warning(f"No data for {symbol} ({instrument_key})")
+                        results[symbol] = self._create_default_data()
+            except Exception as e:
+                logging.error(f"Error in batch {i//batch_size}: {str(e)}")
+                for symbol in batch:
+                    try:
+                        results[symbol] = self.get_stock_data(symbol)
+                    except Exception as e:
+                        logging.error(f"Error fetching {symbol}: {str(e)}")
+                        results[symbol] = self._create_default_data()
+        
+        return results
+
+    def _create_default_data(self):
+        return {
+            "price": 0,
+            "pct_change": 0,
+            "zone_type": [],
+            "zone_direction": [],
+            "strength": 0,
+            "base": 0,
+            "is_sector": False
+        }
+
+    def get_price(self, symbol: str) -> float:
+        try:
+            ltp = self.kite.ltp([f"NSE:{symbol}"])[f"NSE:{symbol}"]
+            return ltp['last_price']
+        except Exception as e:
+            logging.error(f"Error getting price for {symbol}: {e}")
+            return 0.0
+    
+    def get_historical_data(self, symbol: str, 
+                          from_date: datetime, 
+                          to_date: datetime,
+                          interval: str) -> List[Dict[str, Any]]:
+        self._historical_rate_limit()
+        
+        try:
+            kite_interval = {
+                "day": "day",
+                "minute": "minute",
+                "5minute": "5minute",
+                "15minute": "15minute"
+            }.get(interval, "day")
+            
+            instrument_token = self.instruments[symbol]['instrument_token']
+            
+            self._rate_limit()
+            data = self.kite.historical_data(
+                instrument_token,
+                from_date=from_date,
+                to_date=to_date,
+                interval=kite_interval
+            )
+            
+            return [{
+                'date': candle['date'],
+                'open': candle['open'],
+                'high': candle['high'],
+                'low': candle['low'],
+                'close': candle['close'],
+                'volume': candle['volume']
+            } for candle in data]
+        except Exception as e:
+            logging.error(f"Error fetching historical data for {symbol}: {e}")
+            return []
+            
+    def subscribe_to_ticks(self, symbols: List[str], callback):
+        try:
+            tokens = [self.instruments[sym]['instrument_token'] for sym in symbols]
+            self.kite.subscribe(tokens)
+            logging.info(f"Subscribed to ticks for {len(symbols)} symbols")
+        except Exception as e:
+            logging.error(f"Error subscribing to ticks: {e}")
+    
+    def get_instrument_details(self, symbol: str) -> Dict[str, Any]:
+        inst = self.instruments.get(symbol, {})
+        return {
+            "symbol": symbol,
+            "token": inst.get("instrument_token", 0),
+            "lot_size": inst.get("lot_size", 1),
+            "tick_size": inst.get("tick_size", 0.05),
+            "instrument_type": inst.get("instrument_type", "EQ"),
+            "segment": inst.get("segment", "NSE"),
+            "exchange": inst.get("exchange", "NSE")
+        }
+
+
+
+
+
+
+
+
+
+#===================================================================================================================
+# livedata/live_market_data_provider.py    
+#===================================================================================================================
+
+import time
+import threading
+from typing import Dict, Callable
+from .live_data_provider import LiveDataProvider
+from .caching import DataCache
+import logging
+from typing import Dict, Any, List
+
+
+class LiveMarketDataService:
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._init_service()
+        return cls._instance
+    
+    def _init_service(self):
+        self.provider = LiveDataProvider()
+        self.cache = DataCache()
+        self.subscribers = []
+        self.running = False
+        self.thread = None
+        self.update_interval = 300  # 5 minutes (adjust as needed)
+        self.priority_symbols = set()
+
+    def set_priority_symbols(self, symbols: List[str]):
+        """Set symbols that should be updated more frequently"""
+        self.priority_symbols = set(symbols)
+        
+    def start(self):
+        if not self.running:
+            self.running = True
+            self.thread = threading.Thread(target=self._update_loop)
+            self.thread.daemon = True
+            self.thread.start()
+    
+    def stop(self):
+        self.running = False
+        if self.thread:
+            self.thread.join()
+    
+    def _update_loop(self):
+        full_update_count = 0
+        while self.running:
+            try:
+                stock_map = self.provider.get_stock_map()
+                all_symbols = list(stock_map.keys())
+                for sector_stocks in stock_map.values():
+                    all_symbols.extend(sector_stocks)
+                
+                if full_update_count % 5 == 0:
+                    symbols_to_update = all_symbols
+                else:
+                    symbols_to_update = list(self.priority_symbols)
+                
+                if symbols_to_update:
+                    data = self.provider.get_bulk_data(symbols_to_update)
+                    
+                    for symbol, values in data.items():
+                        self.cache.set(symbol, values)
+                    
+                    for callback in self.subscribers:
+                        try:
+                            callback(data)
+                        except Exception as e:
+                            logging.error(f"Error in subscriber callback: {e}")
+                
+                full_update_count += 1
+                time.sleep(self.update_interval)
+            except Exception as e:
+                logging.error(f"Error in update loop: {e}")
+                time.sleep(60)
+    
+    def subscribe(self, callback: Callable[[Dict[str, Any]], None]):
+        """Subscribe to receive market data updates"""
+        if callback not in self.subscribers:
+            self.subscribers.append(callback)
+    
+    def unsubscribe(self, callback: Callable[[Dict[str, Any]], None]):
+        """Unsubscribe from market data updates"""
+        if callback in self.subscribers:
+            self.subscribers.remove(callback)
+    
+    def get_current_data(self) -> Dict[str, Any]:
+        """Get the latest cached market data"""
+        stock_map = self.provider.get_stock_map()
+        all_symbols = list(stock_map.keys())
+        for sector_stocks in stock_map.values():
+            all_symbols.extend(sector_stocks)
+        
+        return self.provider.get_bulk_data(all_symbols)
