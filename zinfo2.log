@@ -46,11 +46,12 @@ project/
 │   └── live_market_data_services.py
 
 
+/Users/omkarsinhsolanki/Documents/GitHub/new_dashboard_project
+git status
 
-cd /Users/omkarsinhsolanki/Documents/GitHub/dashboard_project_core
 git add .
-git commit -m "new streamlit update"
-
+git commit -m "New Updates"
+git push origin main
 
 
 
