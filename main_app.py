@@ -2,40 +2,12 @@ import os
 from dotenv import load_dotenv
 import streamlit as st
 
-# --------------------------
-# 1. Page config MUST come first!
-# --------------------------
 st.set_page_config(
     page_title="Stock Analysis Dashboard",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --------------------------
-# 2. Then load credentials
-# --------------------------
-try:
-    # Try Streamlit secrets (for deployment)
-    API_KEY = st.secrets["kite"]["api_key"]
-    API_SECRET = st.secrets["kite"]["api_secret"]
-    ACCESS_TOKEN = st.secrets["kite"]["access_token"]
-except:
-    # Fallback to .env (for local dev)
-    load_dotenv()
-    API_KEY = os.getenv("API_KEY")
-    API_SECRET = os.getenv("API_SECRET")
-    ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
-
-# Validate credentials
-if not all([API_KEY, API_SECRET, ACCESS_TOKEN]):
-    st.error("⚠️ Missing Kite API credentials. Check secrets.toml or .env")
-     
-
-# After the credential-loading code in main_app.py
-st.sidebar.write("Debug: Using secrets.toml?", "kite" in st.secrets)
-st.sidebar.write("Debug: API_KEY loaded?", bool(API_KEY))
-
-st.stop()
 from stocks_filter import main as box6_main
 from value_editor import main as value_editor_main
 
