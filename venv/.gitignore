@@ -23,3 +23,8 @@ logs/
 
 # Secrets
 .env
+
+.DS_Store
+__pycache__/
+venv/
+.streamlit/secrets.toml
