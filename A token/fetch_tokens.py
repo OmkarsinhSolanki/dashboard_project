@@ -1,19 +1,23 @@
 import os
 import pandas as pd
 from kiteconnect import KiteConnect
+from dotenv import load_dotenv
+import os
 import logging
 
 logging.basicConfig(level=logging.INFO)
 
 # ---- CONFIG ---- #
-KITE_API_KEY = "sga0oscku88h6hhi"
-KITE_API_SECRET = "3sxovyrdcawudyy33f6yjom964x759tw"
-KITE_ACCESS_TOKEN = "HecGS9G6qdNeRQb7LW51ioQoKBPSMnhk"  # You should already have this
+
+load_dotenv()
+API_KEY = os.getenv("API_KEY")
+API_SECRET = os.getenv("API_SECRET")
+ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
 
 INSTRUMENTS_CSV = "nse_instruments.csv"
 
-kite = KiteConnect(api_key=KITE_API_KEY)
-kite.set_access_token(KITE_ACCESS_TOKEN)
+kite = KiteConnect(api_key=API_KEY)
+kite.set_access_token(ACCESS_TOKEN)
 
 # ---- 1. Download instrument list if not present ---- #
 def download_nse_instruments():

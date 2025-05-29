@@ -1,5 +1,11 @@
 from kiteconnect import KiteConnect
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
+API_KEY = os.getenv("API_KEY")
+API_SECRET = os.getenv("API_SECRET")
+ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
 # do every time
 # https://kite.trade/connect/login?api_key=sga0oscku88h6hhi&v=3
 # use the link ginen above to get new 'request token" and ureplace it with your_request_token down here.
