@@ -4,12 +4,6 @@ from pathlib import Path
 import webbrowser
 import urllib.parse
 
-# Configure page
-st.set_page_config(
-    page_title="Kite Connect Token Generator",
-    layout="centered",
-    initial_sidebar_state="collapsed"
-)
 
 st.title("Kite Connect Token Generator")
 
