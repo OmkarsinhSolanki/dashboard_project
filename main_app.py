@@ -2,8 +2,27 @@ import streamlit as st
 from kiteconnect import KiteConnect
 from data.settings import API_KEY, ACCESS_TOKEN
 
-
 # streamlit run main_app.py
+
+st.set_page_config(
+    page_title="Stock Analysis Dashboard", 
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Main App Navigation
+st.sidebar.title("Stocks Analysis")
+st.sidebar.markdown("---")
+app_mode = st.sidebar.radio(
+    "Navigation",
+    ["📊 Dashboard", "✏️ Value Editor", "🔑 Token Generator"],
+    index=0
+)
+
+if app_mode == "🔑 Token Generator":
+    from token_generator import main as token_generator_main
+    token_generator_main()
+
 
 def verify_access_token():
     """Test the access token by fetching data for a real stock (e.g., 'RELIANCE')."""
@@ -29,11 +48,6 @@ def verify_access_token():
 if not verify_access_token():
     st.stop()  # Hard stop - nothing below this runs if verification fails.
 
-st.set_page_config(
-    page_title="Stock Analysis Dashboard", 
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
 
 from stocks_filter import main as box6_main
 from value_editor import main as value_editor_main
@@ -44,14 +58,6 @@ hide_st_style = """
 """
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
-# Main App Navigation
-st.sidebar.title("Stocks Analysis")
-st.sidebar.markdown("---")
-app_mode = st.sidebar.radio(
-    "Navigation",
-    ["📊 Dashboard", "✏️ Value Editor"],
-    index=0
-)
 
 if app_mode == "📊 Dashboard":
     box6_main()
