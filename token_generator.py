@@ -3,8 +3,6 @@ from kiteconnect import KiteConnect
 from pathlib import Path
 import webbrowser
 
-st.title("Kite Connect Token Generator")
-
 def main():
     # Step 1: Show API Key and Login Button
     st.subheader("Step 1: Login to Kite Connect")
@@ -17,7 +15,7 @@ def main():
             st.error("API credentials not found in secrets.toml")
             return
     
-    st.write(f"API Key: `{st.session_state.api_key}`")
+    # st.write(f"API Key: `{st.session_state.api_key}`")
     
     if st.button("Login to Kite Connect"):
         login_url = f"https://kite.trade/connect/login?api_key={st.session_state.api_key}&v=3"
