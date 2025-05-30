@@ -2,8 +2,6 @@ import streamlit as st
 from kiteconnect import KiteConnect
 from pathlib import Path
 import webbrowser
-import urllib.parse
-
 
 st.title("Kite Connect Token Generator")
 
