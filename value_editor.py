@@ -61,7 +61,10 @@ def save_zone_data(data):
     path = Path(__file__).parent / "data" / "zone_definitions.json"
     with open(path, "w") as f:
         json.dump(data, f, indent=2)
-    save_and_push_to_github(data) 
+    if save_and_push_to_github(data, "zone_definitions.json"):
+        st.success("Changes saved and pushed to GitHub!")
+    else:
+        st.warning("Changes saved locally but failed to push to GitHub")
 
 def load_confirmation_data():
     path = Path(__file__).parent / "data" / "confirmation_list.json"
@@ -77,8 +80,12 @@ def load_confirmation_data():
 
 def save_confirmation_data(data):
     path = Path(__file__).parent / "data" / "confirmation_list.json"
-    with open(path, 'w') as f:
+    with open(path, "w") as f:
         json.dump(data, f, indent=2)
+    if save_and_push_to_github(data, "confirmation_list.json"):
+        st.success("Changes saved and pushed to GitHub!")
+    else:
+        st.warning("Changes saved locally but failed to push to GitHub")
 
 def load_stock_map():
     path = Path(__file__).parent / "data" / "stock_map.json"
@@ -264,8 +271,13 @@ def load_top_picks_data():
 
 def save_top_picks_data(data):
     path = Path(__file__).parent / "data" / "top_picks.json"
-    with open(path, 'w') as f:
+    with open(path, "w") as f:
         json.dump(data, f, indent=2)
+    if save_and_push_to_github(data, "top_picks.json"):
+        st.success("Changes saved and pushed to GitHub!")
+    else:
+        st.warning("Changes saved locally but failed to push to GitHub")
+
 
 def display_top_picks_form(selected_stock):
     top_picks_data = load_top_picks_data()
