@@ -17,7 +17,7 @@ def main():
     # Initialize session state variables FIRST
     if 'refresh_settings' not in st.session_state:
         st.session_state.refresh_settings = {
-            'interval': 10,  # Default 1 minute
+            'interval': 60,  # Default 1 minute
             'last_refresh': time.time(),
             'auto_refresh': True
         }
