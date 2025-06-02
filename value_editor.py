@@ -3,8 +3,51 @@ import json
 from datetime import datetime
 from pathlib import Path
 from fuzzywuzzy import process
+import git
+from pathlib import Path
+import json
+import os
 
 
+
+def save_and_push_to_github(data, file_name="zone_definitions.json"):
+    try:
+        repo_path = Path(__file__).parent.parent
+        repo = git.Repo(repo_path)
+        
+        # Update the file
+        file_path = repo_path / "data" / file_name
+        with open(file_path, "w") as f:
+            json.dump(data, f, indent=2)
+
+        # Configure git
+        repo.git.config("user.email", "your_email@example.com")
+        repo.git.config("user.name", "Your GitHub Username")
+
+        # Commit & Push with token authentication
+        repo.git.add(file_path)
+        repo.git.commit("-m", f"Auto-update {file_name}")
+        
+        # Get the GitHub token from secrets
+        token = st.secrets.get("GITHUB_TOKEN", os.getenv("GITHUB_TOKEN"))
+        if not token:
+            st.error("GitHub token not found in secrets!")
+            return False
+            
+        origin = repo.remote(name="origin")
+        origin_url = origin.url.replace(
+            "https://github.com/",
+            f"https://{token}@github.com/"
+        )
+        origin.set_url(origin_url)
+        
+        origin.push()
+        return True
+        
+    except Exception as e:
+        st.error(f"Error pushing to GitHub: {str(e)}")
+        return False
+        
 # streamlit run value_editor.py
 
 def load_zone_data():
@@ -16,8 +59,9 @@ def load_zone_data():
 
 def save_zone_data(data):
     path = Path(__file__).parent / "data" / "zone_definitions.json"
-    with open(path, 'w') as f:
+    with open(path, "w") as f:
         json.dump(data, f, indent=2)
+    save_and_push_to_github(data) 
 
 def load_confirmation_data():
     path = Path(__file__).parent / "data" / "confirmation_list.json"
@@ -51,7 +95,7 @@ def get_all_stocks():
     all_stocks = []
     for sector_stocks in stock_map.values():
         all_stocks.extend(sector_stocks)
-    return sorted(list(set(all_stocks)))  # Remove duplicates and sort
+    return sorted(list(set(all_stocks))) 
 
 def fuzzy_search(query, choices, limit=5):
     """Fuzzy search with autocomplete"""
@@ -113,19 +157,15 @@ def get_stock_zone_info(stock):
     if not stock_zones:
         return "", 0
     
-    # Filter for daily zones only (D1, D2)
     daily_zones = [z for z in stock_zones if z['type'] in ['D1', 'D2']]
     
     if not daily_zones:
         return "", 0
     
-    # Get zone types (without direction)
     zone_types = [z['type'] for z in daily_zones]
     
-    # Calculate total score from daily zones only
     total_score = sum(z['strength'] + z['base'] for z in daily_zones)
     
-    # Format zone display without direction indicators
     zone_display = " + ".join(zone_types)
     
     return zone_display, total_score
@@ -134,17 +174,17 @@ def display_confirmation_form(selected_stock):
     confirmation_data = load_confirmation_data()
     
     with st.form(f"confirmation_form_{selected_stock}"):
-        # Confirmation list selection
+  
         list_options = ["Demand D2", "Demand D1", "Supply D2", "Supply D1"]
         selected_list = st.selectbox("Confirmation List", list_options)
         
-        # Get zone info for this stock
+
         zone_display, zone_total = get_stock_zone_info(selected_stock)
         
-        # Display zone info (read-only)
+
         st.markdown(f"**Zone Info:** {zone_display}, Total: {zone_total}")
         
-        # Score inputs
+
         col1, col2, col3, col4 = st.columns(4)
         rsi_score = col1.number_input("RSI Score", min_value=0, max_value=10, value=0, step=1)
         sr_score = col2.number_input("S&R Score", min_value=0, max_value=10, value=0, step=1)
@@ -154,7 +194,7 @@ def display_confirmation_form(selected_stock):
         if st.form_submit_button("Add to Confirmation List"):
             list_key = selected_list.lower().replace(" ", "_")
             
-            # Create new entry
+         
             new_entry = {
                 "stock": selected_stock,
                 "zone_display": zone_display,
@@ -166,13 +206,13 @@ def display_confirmation_form(selected_stock):
                 "timestamp": datetime.now().isoformat()
             }
             
-            # Add to confirmation list
+
             confirmation_data[list_key].append(new_entry)
             save_confirmation_data(confirmation_data)
             st.success(f"Added {selected_stock} to {selected_list} confirmation list!")
             st.rerun()
     
-    # Display existing confirmation entries for this stock
+
     found_entries = False
     
     for list_name, entries in confirmation_data.items():
@@ -182,7 +222,7 @@ def display_confirmation_form(selected_stock):
             found_entries = True
             for i, entry in enumerate(stock_entries):
                 with st.expander(f"{list_name.replace('_', ' ').title()} Entry #{i+1}", expanded=False):
-                    # Handle legacy entries
+           
                     zone_disp = entry.get('zone_display', 'N/A')
                     zone_tot = entry.get('zone_total', 0)
                     rsi = entry.get('rsi', 0)
@@ -232,15 +272,15 @@ def display_top_picks_form(selected_stock):
     confirmation_data = load_confirmation_data()
 
     with st.form(f"top_picks_form_{selected_stock}"):
-        # Get stock info for display
+       
         zone_display, zone_total = get_stock_zone_info(selected_stock)
         
-        # Initialize variables
+    
         rr_score = 0.0
         final_score = zone_total
         has_confirmation_entry = False
         
-        # Check if stock exists in any confirmation list
+
         for list_name, entries in confirmation_data.items():
             for entry in entries:
                 if entry["stock"] == selected_stock:
@@ -254,7 +294,7 @@ def display_top_picks_form(selected_stock):
             if has_confirmation_entry:
                 break
         
-        # Display stock info (read-only)
+   
         cols = st.columns([1.5, 1, 1.5, 1.5, 1])
         with cols[0]:
             st.markdown("Stock Info:")
@@ -267,7 +307,7 @@ def display_top_picks_form(selected_stock):
         with cols[4]:
             st.markdown(f"{rr_score:.1f}")      
         
-        # Top picks list selection
+
         list_options = ["Demand D2", "Demand D1", "Supply D2", "Supply D1"]
         selected_list = st.selectbox("Top Picks List", list_options)
         
