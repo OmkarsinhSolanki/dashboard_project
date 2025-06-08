@@ -624,6 +624,107 @@
         "timestamp": "2025-06-03T02:04:21.894121"
       }
     ],
+    "RAJESHEXPO'": [
+      {
+        "price_low": 224,
+        "price_high": 261,
+        "direction": "supply",
+        "type": "M",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-04T15:21:54.180092"
+      },
+      {
+        "price_low": 117,
+        "price_high": 153,
+        "direction": "demand",
+        "type": "M",
+        "strength": 2,
+        "base": 2,
+        "timestamp": "2025-06-04T15:27:25.196118"
+      },
+      {
+        "price_low": 232,
+        "price_high": 261,
+        "direction": "supply",
+        "type": "W",
+        "strength": 2,
+        "base": 1,
+        "timestamp": "2025-06-04T15:27:57.801358"
+      },
+      {
+        "price_low": 176,
+        "price_high": 188,
+        "direction": "demand",
+        "type": "W",
+        "strength": 1,
+        "base": 3,
+        "timestamp": "2025-06-04T15:28:25.434714"
+      },
+      {
+        "price_low": 151,
+        "price_high": 164,
+        "direction": "demand",
+        "type": "W",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-04T15:28:55.151189"
+      },
+      {
+        "price_low": 117,
+        "price_high": 131,
+        "direction": "demand",
+        "type": "W",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-04T15:29:36.187472"
+      },
+      {
+        "price_low": 228,
+        "price_high": 235,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 2,
+        "timestamp": "2025-06-04T15:30:36.003968"
+      },
+      {
+        "price_low": 176,
+        "price_high": 180,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 1,
+        "base": 4,
+        "timestamp": "2025-06-04T15:31:12.285818"
+      },
+      {
+        "price_low": 151,
+        "price_high": 155,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-04T15:31:38.002115"
+      },
+      {
+        "price_low": 117,
+        "price_high": 122,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-04T15:32:59.283456"
+      },
+      {
+        "price_low": 124,
+        "price_high": 129,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-04T15:33:31.448763"
+      }
+    ],
     "TITAN": [
       {
         "price_low": 2925,
@@ -732,6 +833,1113 @@
         "strength": 2,
         "base": 3,
         "timestamp": "2025-06-03T04:06:07.519503"
+      }
+    ],
+    "VGUARD": [
+      {
+        "price_low": 385,
+        "price_high": 402,
+        "direction": "supply",
+        "type": "W",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-04T15:42:03.016141"
+      },
+      {
+        "price_low": 300,
+        "price_high": 319,
+        "direction": "demand",
+        "type": "W",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-04T15:42:26.617738"
+      },
+      {
+        "price_low": 390,
+        "price_high": 402,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 2,
+        "timestamp": "2025-06-04T15:43:18.600662"
+      },
+      {
+        "price_low": 336,
+        "price_high": 342,
+        "direction": "demand",
+        "type": "D2",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-04T15:56:09.771088"
+      },
+      {
+        "price_low": 300,
+        "price_high": 315,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-04T15:56:56.985877"
+      }
+    ],
+    "VOLTAS": [
+      {
+        "price_low": 1789,
+        "price_high": 1944,
+        "direction": "supply",
+        "type": "M",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-03T14:58:29.912893"
+      },
+      {
+        "price_low": 1013,
+        "price_high": 1139,
+        "direction": "demand",
+        "type": "M",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-03T14:58:59.708986"
+      },
+      {
+        "price_low": 1402,
+        "price_high": 1531,
+        "direction": "supply",
+        "type": "W",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-03T15:03:02.681551"
+      },
+      {
+        "price_low": 1596,
+        "price_high": 1699,
+        "direction": "supply",
+        "type": "W",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-03T15:03:30.411594"
+      },
+      {
+        "price_low": 1789,
+        "price_high": 1859,
+        "direction": "supply",
+        "type": "W",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-03T15:04:03.083256"
+      },
+      {
+        "price_low": 1023,
+        "price_high": 1099,
+        "direction": "demand",
+        "type": "W",
+        "strength": 2,
+        "base": 2,
+        "timestamp": "2025-06-03T15:04:28.480657"
+      },
+      {
+        "price_low": 1320,
+        "price_high": 1357,
+        "direction": "supply",
+        "type": "D2",
+        "strength": 1,
+        "base": 4,
+        "timestamp": "2025-06-03T15:07:52.979813"
+      },
+      {
+        "price_low": 1449,
+        "price_high": 1469,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-03T15:08:23.329452"
+      },
+      {
+        "price_low": 1496,
+        "price_high": 1531,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-03T15:09:02.878759"
+      },
+      {
+        "price_low": 1580,
+        "price_high": 1615,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-03T15:09:42.480523"
+      },
+      {
+        "price_low": 1625,
+        "price_high": 1699,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-03T15:10:25.678299"
+      },
+      {
+        "price_low": 1764,
+        "price_high": 1805,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-03T15:11:02.910812"
+      },
+      {
+        "price_low": 1813,
+        "price_high": 1859,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-03T15:11:35.561576"
+      },
+      {
+        "price_low": 1083,
+        "price_high": 1116,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-03T15:13:06.645151"
+      },
+      {
+        "price_low": 1032,
+        "price_high": 1067,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-03T15:13:55.227263"
+      }
+    ],
+    "BATAINDIA": [
+      {
+        "price_low": 1523,
+        "price_high": 1633,
+        "direction": "supply",
+        "type": "M",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-08T22:08:53.257628"
+      },
+      {
+        "price_low": 1899,
+        "price_high": 2005,
+        "direction": "supply",
+        "type": "M",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-08T22:09:28.962019"
+      },
+      {
+        "price_low": 833,
+        "price_high": 983,
+        "direction": "demand",
+        "type": "M",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-08T22:09:59.272449"
+      },
+      {
+        "price_low": 735,
+        "price_high": 807,
+        "direction": "demand",
+        "type": "M",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-08T22:10:26.817570"
+      },
+      {
+        "price_low": 1585,
+        "price_high": 1633,
+        "direction": "supply",
+        "type": "W",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-08T22:11:07.632463"
+      },
+      {
+        "price_low": 1811,
+        "price_high": 1875,
+        "direction": "supply",
+        "type": "W",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-08T22:11:35.881396"
+      },
+      {
+        "price_low": 2144,
+        "price_high": 2265,
+        "direction": "supply",
+        "type": "W",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-08T22:13:18.595852"
+      },
+      {
+        "price_low": 1185,
+        "price_high": 1225,
+        "direction": "demand",
+        "type": "W",
+        "strength": 1,
+        "base": 3,
+        "timestamp": "2025-06-08T22:20:17.932609"
+      },
+      {
+        "price_low": 833,
+        "price_high": 927,
+        "direction": "demand",
+        "type": "W",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-08T22:20:57.632632"
+      },
+      {
+        "price_low": 735,
+        "price_high": 788,
+        "direction": "demand",
+        "type": "W",
+        "strength": 2,
+        "base": 2,
+        "timestamp": "2025-06-08T22:21:23.229927"
+      },
+      {
+        "price_low": 1336,
+        "price_high": 1377,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-08T22:13:58.181705"
+      },
+      {
+        "price_low": 1401,
+        "price_high": 1424,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-08T22:14:20.879859"
+      },
+      {
+        "price_low": 1461,
+        "price_high": 1482,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-08T22:14:54.444709"
+      },
+      {
+        "price_low": 1597,
+        "price_high": 1628,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-08T22:15:44.032523"
+      },
+      {
+        "price_low": 1671,
+        "price_high": 1724,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-08T22:16:06.735459"
+      },
+      {
+        "price_low": 1808,
+        "price_high": 1828,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-08T22:16:44.048680"
+      },
+      {
+        "price_low": 1852,
+        "price_high": 1867,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-08T22:17:08.564216"
+      },
+      {
+        "price_low": 1906,
+        "price_high": 1932,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-08T22:17:34.146896"
+      },
+      {
+        "price_low": 2174,
+        "price_high": 2262,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-08T22:18:46.447655"
+      },
+      {
+        "price_low": 1185,
+        "price_high": 1200,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-08T22:26:18.109070"
+      },
+      {
+        "price_low": 1140,
+        "price_high": 1162,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-08T22:26:52.997621"
+      }
+    ],
+    "CROMPTON": [
+      {
+        "price_low": 383,
+        "price_high": 446,
+        "direction": "supply",
+        "type": "M",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-03T15:22:11.234042"
+      },
+      {
+        "price_low": 455,
+        "price_high": 481,
+        "direction": "supply",
+        "type": "M",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-03T15:22:29.950040"
+      },
+      {
+        "price_low": 261,
+        "price_high": 292,
+        "direction": "demand",
+        "type": "M",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-03T15:22:57.415354"
+      },
+      {
+        "price_low": 353,
+        "price_high": 367,
+        "direction": "supply",
+        "type": "W",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-03T15:24:09.182335"
+      },
+      {
+        "price_low": 389,
+        "price_high": 402,
+        "direction": "supply",
+        "type": "W",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-03T15:24:39.333253"
+      },
+      {
+        "price_low": 403,
+        "price_high": 419,
+        "direction": "supply",
+        "type": "W",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-03T15:25:20.513823"
+      },
+      {
+        "price_low": 425,
+        "price_high": 446,
+        "direction": "supply",
+        "type": "W",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-03T15:26:04.283425"
+      },
+      {
+        "price_low": 315,
+        "price_high": 325,
+        "direction": "demand",
+        "type": "W",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-03T15:26:42.849703"
+      },
+      {
+        "price_low": 287,
+        "price_high": 300,
+        "direction": "demand",
+        "type": "W",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-03T15:27:19.398241"
+      },
+      {
+        "price_low": 261,
+        "price_high": 278,
+        "direction": "demand",
+        "type": "W",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-03T15:27:53.682134"
+      },
+      {
+        "price_low": 391,
+        "price_high": 402,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 2,
+        "timestamp": "2025-06-03T15:32:27.802077"
+      },
+      {
+        "price_low": 406,
+        "price_high": 413,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-03T15:32:56.183980"
+      },
+      {
+        "price_low": 423,
+        "price_high": 433,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-03T15:33:23.383405"
+      },
+      {
+        "price_low": 437,
+        "price_high": 446,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-03T15:33:46.186334"
+      },
+      {
+        "price_low": 318,
+        "price_high": 322,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-03T15:34:25.535019"
+      },
+      {
+        "price_low": 292,
+        "price_high": 298,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-03T15:34:58.518871"
+      },
+      {
+        "price_low": 277,
+        "price_high": 285,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-03T15:35:43.135673"
+      },
+      {
+        "price_low": 263,
+        "price_high": 272,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 2,
+        "base": 2,
+        "timestamp": "2025-06-03T15:36:07.735318"
+      }
+    ],
+    "CERA": [
+      {
+        "price_low": 8800,
+        "price_high": 10789,
+        "direction": "supply",
+        "type": "M",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T00:34:45.722086"
+      },
+      {
+        "price_low": 7140,
+        "price_high": 8014,
+        "direction": "supply",
+        "type": "M",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T00:35:12.577867"
+      },
+      {
+        "price_low": 5060,
+        "price_high": 5638,
+        "direction": "demand",
+        "type": "M",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T00:35:47.661221"
+      },
+      {
+        "price_low": 3515,
+        "price_high": 4335,
+        "direction": "demand",
+        "type": "M",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T00:36:15.512460"
+      },
+      {
+        "price_low": 6666,
+        "price_high": 7050,
+        "direction": "supply",
+        "type": "W",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-09T00:37:23.159812"
+      },
+      {
+        "price_low": 7525,
+        "price_high": 7739,
+        "direction": "supply",
+        "type": "W",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-09T00:37:45.665799"
+      },
+      {
+        "price_low": 9005,
+        "price_high": 9401,
+        "direction": "supply",
+        "type": "W",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-09T00:38:21.932187"
+      },
+      {
+        "price_low": 10101,
+        "price_high": 10790,
+        "direction": "supply",
+        "type": "W",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-09T00:38:50.923345"
+      },
+      {
+        "price_low": 5208,
+        "price_high": 5485,
+        "direction": "demand",
+        "type": "W",
+        "strength": 2,
+        "base": 2,
+        "timestamp": "2025-06-09T00:39:31.265791"
+      },
+      {
+        "price_low": 6786,
+        "price_high": 6975,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T00:40:50.396942"
+      },
+      {
+        "price_low": 7111,
+        "price_high": 7247,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-09T00:42:10.363299"
+      },
+      {
+        "price_low": 7570,
+        "price_high": 7703,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T00:42:41.702884"
+      },
+      {
+        "price_low": 5208,
+        "price_high": 5401,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 2,
+        "base": 2,
+        "timestamp": "2025-06-09T01:16:32.434521"
+      }
+    ],
+    "KAJARIACER": [
+      {
+        "price_low": 1466,
+        "price_high": 1578,
+        "direction": "supply",
+        "type": "M",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-09T01:25:19.976721"
+      },
+      {
+        "price_low": 1103,
+        "price_high": 1243,
+        "direction": "supply",
+        "type": "M",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T01:25:43.340898"
+      },
+      {
+        "price_low": 759,
+        "price_high": 860,
+        "direction": "demand",
+        "type": "M",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T01:26:18.908768"
+      },
+      {
+        "price_low": 523,
+        "price_high": 588,
+        "direction": "demand",
+        "type": "M",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-09T01:26:52.708302"
+      },
+      {
+        "price_low": 1040,
+        "price_high": 1082,
+        "direction": "supply",
+        "type": "W",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T01:27:29.889328"
+      },
+      {
+        "price_low": 1125,
+        "price_high": 1195,
+        "direction": "supply",
+        "type": "W",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T01:28:10.441295"
+      },
+      {
+        "price_low": 1361,
+        "price_high": 1412,
+        "direction": "supply",
+        "type": "W",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-09T01:28:36.110665"
+      },
+      {
+        "price_low": 1475,
+        "price_high": 1579,
+        "direction": "supply",
+        "type": "W",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T01:29:04.455555"
+      },
+      {
+        "price_low": 553,
+        "price_high": 585,
+        "direction": "demand",
+        "type": "W",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T01:30:07.648351"
+      },
+      {
+        "price_low": 760,
+        "price_high": 818,
+        "direction": "demand",
+        "type": "W",
+        "strength": 2,
+        "base": 2,
+        "timestamp": "2025-06-09T01:31:26.685067"
+      },
+      {
+        "price_low": 592,
+        "price_high": 620,
+        "direction": "demand",
+        "type": "W",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-09T01:32:20.483383"
+      },
+      {
+        "price_low": 523,
+        "price_high": 545,
+        "direction": "demand",
+        "type": "W",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-09T01:32:39.381417"
+      },
+      {
+        "price_low": 1133,
+        "price_high": 1150,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-09T01:36:11.616378"
+      },
+      {
+        "price_low": 1192,
+        "price_high": 1217,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-09T01:36:58.632901"
+      },
+      {
+        "price_low": 1389,
+        "price_high": 1411,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 2,
+        "timestamp": "2025-06-09T01:37:44.631373"
+      },
+      {
+        "price_low": 1455,
+        "price_high": 1501,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 2,
+        "timestamp": "2025-06-09T01:38:13.465538"
+      },
+      {
+        "price_low": 1548,
+        "price_high": 1579,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-09T01:38:46.498353"
+      },
+      {
+        "price_low": 922,
+        "price_high": 948,
+        "direction": "demand",
+        "type": "D2",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-09T01:39:22.281594"
+      },
+      {
+        "price_low": 840,
+        "price_high": 866,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T01:39:53.030577"
+      },
+      {
+        "price_low": 810,
+        "price_high": 829,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-09T01:40:17.830460"
+      }
+    ],
+    "KALYANKJIL": [
+      {
+        "price_low": 722,
+        "price_high": 795,
+        "direction": "supply",
+        "type": "M",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-03T15:45:19.885251"
+      },
+      {
+        "price_low": 399,
+        "price_high": 464,
+        "direction": "demand",
+        "type": "M",
+        "strength": 1,
+        "base": 4,
+        "timestamp": "2025-06-03T15:45:55.453920"
+      },
+      {
+        "price_low": 493,
+        "price_high": 527,
+        "direction": "demand",
+        "type": "W",
+        "strength": 1,
+        "base": 2,
+        "timestamp": "2025-06-03T15:47:08.553302"
+      },
+      {
+        "price_low": 399,
+        "price_high": 439,
+        "direction": "demand",
+        "type": "W",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-03T15:47:44.269322"
+      },
+      {
+        "price_low": 567,
+        "price_high": 594,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-03T15:48:20.603755"
+      },
+      {
+        "price_low": 706,
+        "price_high": 724,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-03T15:48:56.669865"
+      },
+      {
+        "price_low": 757,
+        "price_high": 793,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-03T15:49:44.001139"
+      },
+      {
+        "price_low": 417,
+        "price_high": 437,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 2,
+        "base": 2,
+        "timestamp": "2025-06-03T15:50:36.235309"
+      }
+    ],
+    "ORIENTELEC": [
+      {
+        "price_low": 209,
+        "price_high": 218,
+        "direction": "demand",
+        "type": "W",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-09T01:45:37.046017"
+      },
+      {
+        "price_low": 244,
+        "price_high": 249,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 2,
+        "timestamp": "2025-06-09T01:46:32.610185"
+      },
+      {
+        "price_low": 209,
+        "price_high": 217,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 2,
+        "base": 2,
+        "timestamp": "2025-06-09T01:47:14.080700"
+      },
+      {
+        "price_low": 195,
+        "price_high": 203,
+        "direction": "demand",
+        "type": "D2",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T01:47:57.222988"
+      }
+    ],
+    "BAJAJELEC": [
+      {
+        "price_low": 760,
+        "price_high": 866,
+        "direction": "supply",
+        "type": "M",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T01:56:01.661830"
+      },
+      {
+        "price_low": 959,
+        "price_high": 1110,
+        "direction": "supply",
+        "type": "M",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T01:56:59.577716"
+      },
+      {
+        "price_low": 490,
+        "price_high": 580,
+        "direction": "demand",
+        "type": "M",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-09T01:57:33.943292"
+      },
+      {
+        "price_low": 299,
+        "price_high": 381,
+        "direction": "demand",
+        "type": "M",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T01:58:00.076465"
+      },
+      {
+        "price_low": 758,
+        "price_high": 806,
+        "direction": "supply",
+        "type": "W",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T01:58:56.055683"
+      },
+      {
+        "price_low": 981,
+        "price_high": 1038,
+        "direction": "supply",
+        "type": "W",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T01:59:24.010496"
+      },
+      {
+        "price_low": 1318,
+        "price_high": 1426,
+        "direction": "supply",
+        "type": "W",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-09T02:00:21.059835"
+      },
+      {
+        "price_low": 520,
+        "price_high": 553,
+        "direction": "demand",
+        "type": "W",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T02:00:53.693007"
+      },
+      {
+        "price_low": 313,
+        "price_high": 336,
+        "direction": "demand",
+        "type": "W",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T02:01:24.693637"
+      },
+      {
+        "price_low": 679,
+        "price_high": 698,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 1,
+        "base": 2,
+        "timestamp": "2025-06-09T02:02:23.257171"
+      },
+      {
+        "price_low": 830,
+        "price_high": 866,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-09T02:02:52.458414"
+      },
+      {
+        "price_low": 969,
+        "price_high": 990,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 2,
+        "timestamp": "2025-06-09T02:03:28.841930"
+      },
+      {
+        "price_low": 1011,
+        "price_high": 1038,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 4,
+        "timestamp": "2025-06-09T02:03:58.290109"
+      },
+      {
+        "price_low": 1060,
+        "price_high": 1082,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T02:04:19.491295"
+      },
+      {
+        "price_low": 1094,
+        "price_high": 1109,
+        "direction": "supply",
+        "type": "D1",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T02:04:51.458508"
+      },
+      {
+        "price_low": 605,
+        "price_high": 616,
+        "direction": "demand",
+        "type": "D2",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T02:06:21.992755"
+      },
+      {
+        "price_low": 523,
+        "price_high": 533,
+        "direction": "demand",
+        "type": "D1",
+        "strength": 2,
+        "base": 3,
+        "timestamp": "2025-06-09T02:07:40.918856"
       }
     ]
   }
